@@ -30,6 +30,7 @@ export const startups = pgTable("startups", {
   imageUrl: text("image_url"),
   documentUrl: text("document_url"),
   upiId: text("upi_id"),
+  walletAddress: text("wallet_address"),
   endDate: timestamp("end_date"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
@@ -86,6 +87,7 @@ export const insertStartupSchema = createInsertSchema(startups)
     imageUrl: true,
     documentUrl: true,
     upiId: true,
+    walletAddress: true,
     endDate: true,
   })
   .extend({

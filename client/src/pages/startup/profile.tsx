@@ -1,15 +1,14 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
-import { User, Startup } from "@shared/schema";
+import { Startup, Transaction } from "@shared/schema";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
-import { Loader2, Edit, Wallet, Building2, Mail, AtSign, ArrowRight } from "lucide-react";
-import { getInitials, formatCurrency, getStageColor } from "@/lib/utils";
+import { Loader2, Edit, ArrowRight, Building2, Wallet, CheckCircle2 } from "lucide-react";
+import { getInitials, formatCurrency, formatDate, truncateAddress } from "@/lib/utils";
 
 export default function StartupProfile() {
   const { user } = useAuth();
@@ -23,27 +22,38 @@ export default function StartupProfile() {
     refetchOnWindowFocus: false,
   });
 
-  // If user has no startup yet, redirect to create page
-  useEffect(() => {
-    if (!isStartupLoading && !startup) {
-      toast({
-        title: "No startup profile found",
-        description: "Please create your startup profile first.",
-      });
-      navigate("/startup/create");
-    }
-  }, [startup, isStartupLoading, navigate, toast]);
+  // Fetch transactions data
+  const { data: transactions, isLoading: isTransactionsLoading } = useQuery<Transaction[]>({
+    queryKey: ["/api/transactions/startup/me"],
+    retry: false,
+    refetchOnWindowFocus: false,
+  });
 
-  if (isStartupLoading) {
+  const isLoading = isStartupLoading || isTransactionsLoading;
+
+  if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-[80vh]">
+      <div className="container mx-auto py-8 px-4 flex items-center justify-center min-h-[70vh]">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
 
   if (!startup) {
-    return null;
+    return (
+      <div className="container mx-auto py-8 px-4">
+        <div className="text-center max-w-md mx-auto">
+          <Building2 className="h-12 w-12 mx-auto text-primary" />
+          <h2 className="mt-6 text-2xl font-bold">No Startup Profile</h2>
+          <p className="mt-2 text-muted-foreground">
+            You haven't created a startup profile yet.
+          </p>
+          <Button onClick={() => navigate("/startup/create")} className="mt-4">
+            Create Startup Profile
+          </Button>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -68,108 +78,69 @@ export default function StartupProfile() {
                 </Avatar>
                 <div className="space-y-2">
                   <h3 className="text-xl font-bold">{startup.name}</h3>
-                  <Badge variant="secondary" className={`${getStageColor(startup.stage)}`}>
-                    {startup.stage.replace(/-/g, ' ').toUpperCase()}
-                  </Badge>
+                  <p className="text-sm text-muted-foreground capitalize">
+                    {startup.stage.replace(/-/g, " ")}
+                  </p>
                 </div>
-              </div>
-
-              <div className="mt-8 space-y-4">
-                <div className="flex items-center gap-3">
-                  <Building2 className="h-4 w-4 text-muted-foreground" />
-                  <div>
-                    <p className="text-sm font-medium">Company</p>
-                    <p className="text-sm text-muted-foreground">{startup.name}</p>
+                <div className="w-full pt-4 border-t border-border text-left">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-xs text-muted-foreground">Funding Goal</p>
+                      <p className="text-sm font-medium">{formatCurrency(startup.fundingGoal)}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-muted-foreground">End Date</p>
+                      <p className="text-sm font-medium">{startup.endDate ? formatDate(startup.endDate.toString()) : 'Not set'}</p>
+                    </div>
+                    <div className="col-span-2">
+                      <p className="text-xs text-muted-foreground">Raised So Far</p>
+                      <p className="text-sm font-medium">{formatCurrency(startup.fundsRaised || 0)}</p>
+                    </div>
                   </div>
                 </div>
-                {user?.email && (
-                  <div className="flex items-center gap-3">
-                    <Mail className="h-4 w-4 text-muted-foreground" />
-                    <div>
-                      <p className="text-sm font-medium">Email</p>
-                      <p className="text-sm text-muted-foreground">{user.email}</p>
-                    </div>
-                  </div>
-                )}
-                {user?.username && (
-                  <div className="flex items-center gap-3">
-                    <AtSign className="h-4 w-4 text-muted-foreground" />
-                    <div>
-                      <p className="text-sm font-medium">Username</p>
-                      <p className="text-sm text-muted-foreground">{user.username}</p>
-                    </div>
-                  </div>
-                )}
-                {user?.walletAddress && (
-                  <div className="flex items-center gap-3">
-                    <Wallet className="h-4 w-4 text-muted-foreground" />
-                    <div>
-                      <p className="text-sm font-medium">Wallet</p>
-                      <p className="text-sm text-muted-foreground">
-                        {user.walletAddress.substring(0, 6)}...{user.walletAddress.substring(38)}
-                      </p>
-                    </div>
-                  </div>
-                )}
               </div>
             </CardContent>
           </Card>
 
-          {!user?.walletAddress && (
-            <Card className="mt-6">
-              <CardHeader>
-                <CardTitle className="text-base">Connect Wallet</CardTitle>
-                <CardDescription>
-                  Connect your MetaMask wallet to receive investments in cryptocurrency.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Button 
-                  variant="outline" 
-                  className="w-full"
-                  onClick={() => navigate("/wallet-connection")}
-                >
-                  <Wallet className="h-4 w-4 mr-2" /> Connect Wallet
-                </Button>
-              </CardContent>
-            </Card>
-          )}
+          {/* Wallet Connection Status */}
+          <Card className="mt-4">
+            <CardHeader>
+              <CardTitle className="text-base">Wallet Status</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {user?.walletAddress ? (
+                <div className="flex flex-col items-start space-y-2">
+                  <div className="flex items-center">
+                    <CheckCircle2 className="h-5 w-5 text-green-500 mr-2" />
+                    <span className="text-sm font-medium">MetaMask Connected</span>
+                  </div>
+                  <div className="bg-neutral-100 text-neutral-800 text-xs p-2 rounded-md font-mono w-full break-all">
+                    {user.walletAddress}
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  <p className="text-sm text-neutral-600">Connect your wallet to receive cryptocurrency investments.</p>
+                  <Button 
+                    onClick={() => navigate("/wallet-connection")} 
+                    variant="outline" 
+                    className="w-full"
+                  >
+                    <Wallet className="h-4 w-4 mr-2" /> Connect Wallet
+                  </Button>
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </div>
 
         <div className="lg:col-span-2">
           <Card>
             <CardHeader>
-              <CardTitle>Startup Details</CardTitle>
-              <CardDescription>
-                Information about your startup
-              </CardDescription>
+              <CardTitle className="text-lg">About</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-6">
-              <div>
-                <h3 className="text-sm font-medium text-muted-foreground mb-2">Description</h3>
-                <p className="text-sm">{startup.description}</p>
-              </div>
-              
-              <div>
-                <h3 className="text-sm font-medium text-muted-foreground mb-2">Elevator Pitch</h3>
-                <p className="text-sm">{startup.pitch}</p>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-border">
-                <div>
-                  <h3 className="text-sm font-medium text-muted-foreground mb-2">Funding Goal</h3>
-                  <p className="text-lg font-bold">{formatCurrency(startup.fundingGoal)}</p>
-                </div>
-                <div>
-                  <h3 className="text-sm font-medium text-muted-foreground mb-2">Funds Raised</h3>
-                  <p className="text-lg font-bold">
-                    {formatCurrency(startup.fundsRaised)} 
-                    <span className="text-sm font-normal text-muted-foreground">
-                      ({Math.round((startup.fundsRaised / startup.fundingGoal) * 100)}%)
-                    </span>
-                  </p>
-                </div>
-              </div>
+            <CardContent>
+              <p className="text-sm text-neutral-600">{startup.description}</p>
             </CardContent>
           </Card>
 

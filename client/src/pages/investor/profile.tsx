@@ -7,8 +7,12 @@ import { Startup, Transaction } from "@shared/schema";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Loader2, Edit, Wallet, User2, Mail, AtSign, ArrowRight, Calendar, Building2 } from "lucide-react";
-import { getInitials, formatCurrency, formatDate } from "@/lib/utils";
+import { Separator } from "@/components/ui/separator";
+import { 
+  Loader2, Edit, Wallet, User2, Mail, AtSign, 
+  ArrowRight, Calendar, Building2, CheckCircle2
+} from "lucide-react";
+import { getInitials, formatCurrency, formatDate, truncateAddress } from "@/lib/utils";
 
 export default function InvestorProfile() {
   const { user } = useAuth();
@@ -36,13 +40,9 @@ export default function InvestorProfile() {
     return total + transaction.amount;
   }, 0) || 0;
 
-  // Count unique startups invested in
-  const uniqueStartups = new Set(transactions?.map(t => t.startupId));
-  const startupCount = uniqueStartups.size;
-
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-[80vh]">
+      <div className="container mx-auto py-8 px-4 flex items-center justify-center min-h-[70vh]">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
@@ -74,155 +74,108 @@ export default function InvestorProfile() {
                 </div>
               </div>
 
-              <div className="mt-8 space-y-4">
-                <div className="flex items-center gap-3">
-                  <User2 className="h-4 w-4 text-muted-foreground" />
-                  <div>
-                    <p className="text-sm font-medium">Name</p>
-                    <p className="text-sm text-muted-foreground">{user?.username}</p>
-                  </div>
+              <div className="w-full pt-6 mt-4 border-t border-border space-y-4">
+                <div className="flex items-center">
+                  <User2 className="h-4 w-4 text-muted-foreground mr-3" />
+                  <span className="text-sm">{user?.username || "Not specified"}</span>
                 </div>
-                {user?.email && (
-                  <div className="flex items-center gap-3">
-                    <Mail className="h-4 w-4 text-muted-foreground" />
-                    <div>
-                      <p className="text-sm font-medium">Email</p>
-                      <p className="text-sm text-muted-foreground">{user.email}</p>
-                    </div>
-                  </div>
-                )}
-                {user?.username && (
-                  <div className="flex items-center gap-3">
-                    <AtSign className="h-4 w-4 text-muted-foreground" />
-                    <div>
-                      <p className="text-sm font-medium">Username</p>
-                      <p className="text-sm text-muted-foreground">{user.username}</p>
-                    </div>
-                  </div>
-                )}
-                {user?.walletAddress && (
-                  <div className="flex items-center gap-3">
-                    <Wallet className="h-4 w-4 text-muted-foreground" />
-                    <div>
-                      <p className="text-sm font-medium">Wallet</p>
-                      <p className="text-sm text-muted-foreground">
-                        {user.walletAddress.substring(0, 6)}...{user.walletAddress.substring(38)}
-                      </p>
-                    </div>
-                  </div>
-                )}
-                {user?.createdAt && (
-                  <div className="flex items-center gap-3">
-                    <Calendar className="h-4 w-4 text-muted-foreground" />
-                    <div>
-                      <p className="text-sm font-medium">Joined</p>
-                      <p className="text-sm text-muted-foreground">{formatDate(user.createdAt)}</p>
-                    </div>
-                  </div>
-                )}
+                <div className="flex items-center">
+                  <Mail className="h-4 w-4 text-muted-foreground mr-3" />
+                  <span className="text-sm">{user?.email}</span>
+                </div>
+                <div className="flex items-center">
+                  <Calendar className="h-4 w-4 text-muted-foreground mr-3" />
+                  <span className="text-sm">Joined {user?.createdAt ? formatDate(user.createdAt.toString()) : "Recently"}</span>
+                </div>
               </div>
             </CardContent>
           </Card>
 
-          {!user?.walletAddress && (
-            <Card className="mt-6">
-              <CardHeader>
-                <CardTitle className="text-base">Connect Wallet</CardTitle>
-                <CardDescription>
-                  Connect your MetaMask wallet to invest using cryptocurrency.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Button 
-                  variant="outline" 
-                  className="w-full"
-                  onClick={() => navigate("/wallet-connection")}
-                >
-                  <Wallet className="h-4 w-4 mr-2" /> Connect Wallet
-                </Button>
-              </CardContent>
-            </Card>
-          )}
+          {/* Wallet Status Card */}
+          <Card className="mt-4">
+            <CardHeader>
+              <CardTitle className="text-base">Wallet Status</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {user?.walletAddress ? (
+                <div className="flex flex-col items-start space-y-2">
+                  <div className="flex items-center">
+                    <CheckCircle2 className="h-5 w-5 text-green-500 mr-2" />
+                    <span className="text-sm font-medium">MetaMask Connected</span>
+                  </div>
+                  <div className="bg-neutral-100 text-neutral-800 text-xs p-2 rounded-md font-mono w-full break-all">
+                    {user.walletAddress}
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  <p className="text-sm text-neutral-600">Connect your wallet to invest using cryptocurrency.</p>
+                  <Button 
+                    onClick={() => navigate("/wallet-connection")} 
+                    variant="outline" 
+                    className="w-full"
+                  >
+                    <Wallet className="h-4 w-4 mr-2" /> Connect Wallet
+                  </Button>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* UPI Status Card */}
+          <Card className="mt-4">
+            <CardHeader>
+              <CardTitle className="text-base">UPI Status</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {user?.upiId ? (
+                <div className="flex flex-col items-start space-y-2">
+                  <div className="flex items-center">
+                    <CheckCircle2 className="h-5 w-5 text-green-500 mr-2" />
+                    <span className="text-sm font-medium">UPI ID Connected</span>
+                  </div>
+                  <div className="bg-neutral-100 text-neutral-800 text-xs p-2 rounded-md font-mono w-full">
+                    {user.upiId}
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  <p className="text-sm text-neutral-600">Add your UPI ID to enable UPI payments.</p>
+                  <Button 
+                    onClick={() => navigate("/investor/connect-upi")} 
+                    variant="outline" 
+                    className="w-full"
+                  >
+                    <AtSign className="h-4 w-4 mr-2" /> Add UPI ID
+                  </Button>
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </div>
 
         <div className="lg:col-span-2">
           <Card>
             <CardHeader>
-              <CardTitle>Investment Overview</CardTitle>
-              <CardDescription>
-                Summary of your investment activities
-              </CardDescription>
+              <CardTitle className="text-lg">Investment Summary</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 py-4">
-                <div>
-                  <h3 className="text-sm font-medium text-muted-foreground mb-2">Total Invested</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <p className="text-sm text-muted-foreground">Total Invested</p>
                   <p className="text-2xl font-bold">{formatCurrency(totalInvestment)}</p>
                 </div>
-                <div>
-                  <h3 className="text-sm font-medium text-muted-foreground mb-2">Startups Funded</h3>
-                  <p className="text-2xl font-bold">{startupCount}</p>
-                </div>
-                <div>
-                  <h3 className="text-sm font-medium text-muted-foreground mb-2">Transactions</h3>
-                  <p className="text-2xl font-bold">{transactions?.length || 0}</p>
+                <div className="space-y-2">
+                  <p className="text-sm text-muted-foreground">Startups Funded</p>
+                  <p className="text-2xl font-bold">
+                    {new Set(transactions?.map(t => t.startupId)).size || 0}
+                  </p>
                 </div>
               </div>
             </CardContent>
           </Card>
 
           <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-base">Recent Investments</CardTitle>
-                <CardDescription>
-                  Your latest startup investments
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {transactions && transactions.length > 0 ? (
-                  transactions.slice(0, 3).map((transaction) => {
-                    const startup = startups?.find(s => s.id === transaction.startupId);
-                    return (
-                      <div key={transaction.id} className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <Avatar className="h-8 w-8">
-                            <AvatarFallback className="text-xs font-bold bg-primary/10 text-primary">
-                              {getInitials(startup?.name || '')}
-                            </AvatarFallback>
-                          </Avatar>
-                          <div>
-                            <p className="text-sm font-medium">{startup?.name || 'Unknown Startup'}</p>
-                            <p className="text-xs text-muted-foreground">
-                              {formatDate(transaction.createdAt)}
-                            </p>
-                          </div>
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium">{formatCurrency(transaction.amount)}</p>
-                          <p className="text-xs text-right text-muted-foreground capitalize">
-                            {transaction.method}
-                          </p>
-                        </div>
-                      </div>
-                    );
-                  })
-                ) : (
-                  <p className="text-center text-sm text-muted-foreground py-4">
-                    No investments yet
-                  </p>
-                )}
-
-                <Button 
-                  variant="outline" 
-                  className="w-full mt-4"
-                  onClick={() => navigate("/investor/transactions")}
-                >
-                  View All Transactions <ArrowRight className="h-4 w-4 ml-2" />
-                </Button>
-              </CardContent>
-            </Card>
-
             <Card>
               <CardHeader>
                 <CardTitle className="text-base">Explore Startups</CardTitle>
@@ -252,23 +205,66 @@ export default function InvestorProfile() {
                         size="sm"
                         onClick={() => navigate(`/investor/invest/${startup.id}`)}
                       >
-                        Invest
+                        View
                       </Button>
                     </div>
                   ))
                 ) : (
-                  <p className="text-center text-sm text-muted-foreground py-4">
-                    No startups available
-                  </p>
+                  <p className="text-sm text-muted-foreground">No startups available at the moment.</p>
                 )}
+                {startups && startups.length > 3 && (
+                  <Button 
+                    variant="link" 
+                    className="w-full mt-2" 
+                    onClick={() => navigate("/investor/discover")}
+                  >
+                    View All Startups
+                  </Button>
+                )}
+              </CardContent>
+            </Card>
 
-                <Button 
-                  variant="default" 
-                  className="w-full mt-4"
-                  onClick={() => navigate("/")}
-                >
-                  <Building2 className="h-4 w-4 mr-2" /> Browse All Startups
-                </Button>
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">Transaction History</CardTitle>
+                <CardDescription>
+                  View your investment transactions
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {transactions && transactions.length > 0 ? (
+                    transactions.slice(0, 3).map((transaction) => (
+                      <div key={transaction.id} className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
+                            <Building2 className="h-4 w-4 text-primary" />
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium">
+                              {startups?.find(s => s.id === transaction.startupId)?.name || "Unknown Startup"}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              {transaction.createdAt ? formatDate(transaction.createdAt.toString()) : "Recently"}
+                            </p>
+                          </div>
+                        </div>
+                        <p className="text-sm font-medium">{formatCurrency(transaction.amount)}</p>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-sm text-muted-foreground">No transactions yet.</p>
+                  )}
+                  {transactions && transactions.length > 3 && (
+                    <Button 
+                      variant="link" 
+                      className="w-full mt-2" 
+                      onClick={() => navigate("/investor/transactions")}
+                    >
+                      View All Transactions
+                    </Button>
+                  )}
+                </div>
               </CardContent>
             </Card>
           </div>

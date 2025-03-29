@@ -5,16 +5,12 @@ import { setupAuth } from "./auth";
 import { insertStartupSchema, insertUpdateSchema, insertTransactionSchema } from "@shared/schema";
 import { z } from "zod";
 
-// Create a modified schema that transforms string dates to Date objects
-const startupValidationSchema = insertStartupSchema.transform((data) => {
-  // If endDate is provided as a string, convert it to a Date object
-  if (data.endDate && typeof data.endDate === 'string') {
-    return {
-      ...data,
-      endDate: new Date(data.endDate)
-    };
-  }
-  return data;
+// Create a modified schema that properly handles the endDate field
+const startupValidationSchema = insertStartupSchema.extend({
+  endDate: z.string()
+    .transform((val) => val ? new Date(val) : undefined)
+    .or(z.date())
+    .optional(),
 });
 
 export async function registerRoutes(app: Express): Promise<Server> {

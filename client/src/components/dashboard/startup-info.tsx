@@ -91,7 +91,7 @@ export function StartupInfo({ startup, documents, onEditClick }: StartupInfoProp
             <div className="text-xs text-neutral-500 mb-1">Wallet Address</div>
             <div className="flex items-center bg-neutral-100 px-3 py-2 rounded-md mb-4">
               <span className="text-sm font-mono text-neutral-700 overflow-hidden wallet-address">
-                {startup.walletAddress || "Not connected"}
+                {startup.walletAddress ? truncateAddress(startup.walletAddress) : "Not connected"}
               </span>
               {startup.walletAddress && (
                 <Button 

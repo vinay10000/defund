@@ -31,7 +31,8 @@ const formSchema = z.object({
   documentUrl: z.string().optional(),
   upiId: z.string().optional(),
   endDate: z.string().min(1, { message: "End date is required" }),
-  userId: z.string().or(z.number())
+  userId: z.string().or(z.number()),
+  fundingGoal: z.string().min(1, { message: "Funding goal in ETH is required" })
 });
 
 type StartupFormData = z.infer<typeof formSchema>;
@@ -69,6 +70,7 @@ export default function StartupCreate() {
       upiId: "",
       endDate: "",
       userId: user?.id || "",
+      fundingGoal: "",
     },
   });
 
@@ -122,9 +124,9 @@ export default function StartupCreate() {
         // Ensure endDate is properly converted to a Date object if provided
         endDate: data.endDate ? new Date(data.endDate) : undefined,
         userId: user?.id || "",
-        // Required fields from schema with default values
+        // Required fields from schema with proper values
         stage: "pre-seed",
-        fundingGoal: 10000,
+        fundingGoal: parseFloat(data.fundingGoal), // Using ETH value from input
         pitch: data.description // Using description as pitch for now
       };
       
@@ -292,6 +294,30 @@ export default function StartupCreate() {
                     </FormControl>
                     <FormDescription>
                       Enter your UPI ID to receive direct payments
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Funding Goal in ETH */}
+              <FormField
+                control={form.control}
+                name="fundingGoal"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Funding Goal (ETH)</FormLabel>
+                    <FormControl>
+                      <Input 
+                        type="number"
+                        placeholder="5" 
+                        step="0.01"
+                        min="0.01"
+                        {...field} 
+                      />
+                    </FormControl>
+                    <FormDescription>
+                      Enter the amount of ETH you aim to raise
                     </FormDescription>
                     <FormMessage />
                   </FormItem>

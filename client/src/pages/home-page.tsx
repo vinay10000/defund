@@ -23,8 +23,8 @@ export default function HomePage() {
     enabled: true,
   });
 
-  // Get only 3 startups for display
-  const featuredStartups = startups?.slice(0, 3) || [];
+  // Get only 3 startups for display (or only 1 for simpler display)
+  const featuredStartups = startups?.slice(0, 1) || [];
 
   return (
     <div>

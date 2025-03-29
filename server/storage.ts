@@ -124,6 +124,20 @@ export class MemStorage implements IStorage {
 
     const updatedUser = { ...user, walletAddress };
     this.users.set(numericId, updatedUser);
+    
+    // If this is a startup user, also update their startup's wallet address
+    if (user.role === 'startup') {
+      // Find the startup associated with this user
+      const startupEntries = Array.from(this.startups.entries());
+      for (const [startupId, startup] of startupEntries) {
+        if (startup.userId === numericId) {
+          const updatedStartup = { ...startup, walletAddress };
+          this.startups.set(startupId, updatedStartup);
+          break;
+        }
+      }
+    }
+    
     return updatedUser;
   }
 

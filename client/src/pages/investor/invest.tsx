@@ -305,13 +305,13 @@ export default function InvestPage() {
                   
                   <div className="space-y-4 py-4">
                     <div className="space-y-2">
-                      <Label htmlFor="amount">Investment Amount</Label>
+                      <Label htmlFor="amount">Investment Amount (ETH)</Label>
                       <Input
                         id="amount"
-                        placeholder="Enter amount"
+                        placeholder="Enter amount in ETH"
                         type="number"
                         min="0"
-                        step="0.01"
+                        step="0.001"
                         value={amount}
                         onChange={(e) => setAmount(e.target.value)}
                       />

@@ -108,14 +108,14 @@ export default function StartupProfile() {
               <CardTitle className="text-base">Wallet Status</CardTitle>
             </CardHeader>
             <CardContent>
-              {user?.walletAddress ? (
+              {(user?.walletAddress || startup?.walletAddress) ? (
                 <div className="flex flex-col items-start space-y-2">
                   <div className="flex items-center">
                     <CheckCircle2 className="h-5 w-5 text-green-500 mr-2" />
                     <span className="text-sm font-medium">MetaMask Connected</span>
                   </div>
                   <div className="bg-neutral-100 text-neutral-800 text-xs p-2 rounded-md font-mono w-full break-all">
-                    {user.walletAddress}
+                    {user?.walletAddress || startup?.walletAddress}
                   </div>
                 </div>
               ) : (

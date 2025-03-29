@@ -36,13 +36,19 @@ export function StartupInfo({ startup, documents, onEditClick }: StartupInfoProp
     return "ri-file-line";
   };
   
-  const getFileSize = (sizeInMb: number) => {
+  const getFileSize = (sizeInMb?: number) => {
+    if (sizeInMb === undefined || sizeInMb === null) {
+      return 'Unknown size';
+    }
     return sizeInMb < 1 
       ? `${Math.round(sizeInMb * 1000)} KB` 
       : `${sizeInMb.toFixed(1)} MB`;
   };
   
-  const formatDateAgo = (date: Date) => {
+  const formatDateAgo = (date?: Date) => {
+    if (!date) {
+      return 'Unknown date';
+    }
     const now = new Date();
     const diffInDays = Math.floor((now.getTime() - new Date(date).getTime()) / (1000 * 60 * 60 * 24));
     

@@ -364,6 +364,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Special admin routes (ensure these are properly secured in production)
+  app.post('/api/admin/sync-wallets', async (req, res) => {
+    try {
+      await storage.syncStartupsWalletAddresses();
+      res.status(200).json({ success: true, message: 'Wallet addresses synchronized successfully' });
+    } catch (error) {
+      console.error('Error syncing wallet addresses:', error);
+      res.status(500).json({ success: false, message: 'Failed to sync wallet addresses', error: (error as Error).message });
+    }
+  });
+  
+  app.post('/api/admin/clear-startups', async (req, res) => {
+    try {
+      await storage.deleteAllStartups();
+      res.status(200).json({ success: true, message: 'All startups deleted successfully' });
+    } catch (error) {
+      console.error('Error deleting all startups:', error);
+      res.status(500).json({ success: false, message: 'Failed to delete startups', error: (error as Error).message });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

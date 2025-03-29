@@ -193,6 +193,43 @@ export class MongoDBStorage implements IStorage {
       return undefined;
     }
   }
+  
+  // Sync all startups wallet addresses with their user's addresses
+  // This is to fix legacy data where startup wallet addresses might not match user wallet addresses
+  async syncStartupsWalletAddresses(): Promise<void> {
+    try {
+      // Find all startup users
+      const startupUsers = await User.find({ role: 'startup', walletAddress: { $ne: null } });
+      
+      for (const user of startupUsers) {
+        // Find each user's startup
+        const startup = await Startup.findOne({ userId: user._id });
+        if (startup && startup.walletAddress !== user.walletAddress) {
+          // Update startup wallet address to match user's
+          await Startup.findByIdAndUpdate(
+            startup._id,
+            { walletAddress: user.walletAddress },
+            { new: true }
+          );
+          console.log(`Synced wallet address for startup ${startup.name}`);
+        }
+      }
+      
+      console.log('Completed wallet address synchronization');
+    } catch (error) {
+      console.error('Error syncing wallet addresses:', error);
+    }
+  }
+  
+  // Method to delete all startups (for testing/reset purposes only)
+  async deleteAllStartups(): Promise<void> {
+    try {
+      const result = await Startup.deleteMany({});
+      console.log(`Deleted ${result.deletedCount} startups from database`);
+    } catch (error) {
+      console.error('Error deleting startups:', error);
+    }
+  }
 
   async updateUserProfile(id: number | string, profilePath: string): Promise<UserType | undefined> {
     try {

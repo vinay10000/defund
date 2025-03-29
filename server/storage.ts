@@ -31,6 +31,8 @@ export interface IStorage {
   createStartup(startup: InsertStartup): Promise<Startup>;
   updateStartup(id: number | string, updateData: Partial<InsertStartup>): Promise<Startup | undefined>;
   updateStartupFunds(id: number | string, amount: number): Promise<Startup | undefined>;
+  syncStartupsWalletAddresses(): Promise<void>;
+  deleteAllStartups(): Promise<void>;
 
   // Document operations
   getDocumentsByStartupId(startupId: number | string): Promise<Document[]>;
@@ -401,6 +403,43 @@ export class MemStorage implements IStorage {
     await this.updateStartupFunds(insertTransaction.startupId, insertTransaction.amount);
     
     return transaction;
+  }
+  
+  // Sync startup wallet addresses with user wallet addresses
+  async syncStartupsWalletAddresses(): Promise<void> {
+    // Find all startup users with wallet addresses
+    const startupUsers = Array.from(this.users.values())
+      .filter(user => user.role === 'startup' && user.walletAddress);
+    
+    for (const user of startupUsers) {
+      // Find the startup associated with this user
+      const startup = Array.from(this.startups.values())
+        .find(startup => {
+          const startupUserId = typeof startup.userId === 'string' ? 
+            parseInt(startup.userId) : startup.userId;
+          const userId = typeof user.id === 'string' ? 
+            parseInt(user.id) : user.id;
+          return startupUserId === userId;
+        });
+      
+      if (startup && startup.walletAddress !== user.walletAddress) {
+        // Update startup wallet address to match user's
+        const startupId = typeof startup.id === 'string' ? 
+          parseInt(startup.id) : startup.id;
+        const updatedStartup = { ...startup, walletAddress: user.walletAddress };
+        this.startups.set(startupId, updatedStartup);
+        console.log(`Synced wallet address for startup ${startup.name}`);
+      }
+    }
+    
+    console.log('Completed wallet address synchronization in memory storage');
+  }
+  
+  // Delete all startups (for testing/reset purposes only)
+  async deleteAllStartups(): Promise<void> {
+    this.startups.clear();
+    this.startupIdCounter = 1;
+    console.log('Deleted all startups from memory storage');
   }
 }
 

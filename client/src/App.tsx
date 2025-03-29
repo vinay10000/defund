@@ -14,6 +14,7 @@ import StartupTransactions from "@/pages/startup/transactions";
 import StartupUpdates from "@/pages/startup/updates";
 import StartupCreate from "@/pages/startup/create";
 import StartupProfile from "@/pages/startup/profile";
+import StartupEdit from "@/pages/startup/edit";
 
 // Investor pages
 import InvestorDashboard from "@/pages/investor/dashboard";
@@ -68,6 +69,11 @@ function Router() {
           <ProtectedRoute 
             path="/startup/profile" 
             component={StartupProfile}
+            roles={["startup"]}
+          />
+          <ProtectedRoute 
+            path="/startup/edit" 
+            component={StartupEdit}
             roles={["startup"]}
           />
 

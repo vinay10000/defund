@@ -29,6 +29,7 @@ export interface IStorage {
   getAllStartups(): Promise<Startup[]>;
   getStartupsByStage(stage: string): Promise<Startup[]>;
   createStartup(startup: InsertStartup): Promise<Startup>;
+  updateStartup(id: number | string, updateData: Partial<InsertStartup>): Promise<Startup | undefined>;
   updateStartupFunds(id: number | string, amount: number): Promise<Startup | undefined>;
 
   // Document operations
@@ -216,6 +217,27 @@ export class MemStorage implements IStorage {
     
     this.startups.set(id, startup);
     return startup;
+  }
+
+  async updateStartup(id: number | string, updateData: Partial<InsertStartup>): Promise<Startup | undefined> {
+    const numericId = typeof id === 'string' ? parseInt(id) : id;
+    const startup = this.startups.get(numericId);
+    if (!startup) return undefined;
+
+    // Process endDate if it's a string
+    let endDate = updateData.endDate;
+    if (typeof endDate === 'string' && endDate) {
+      endDate = new Date(endDate);
+    }
+
+    const updatedStartup = { 
+      ...startup, 
+      ...updateData,
+      endDate: endDate || startup.endDate
+    };
+    
+    this.startups.set(numericId, updatedStartup);
+    return updatedStartup;
   }
 
   async updateStartupFunds(id: number | string, amount: number): Promise<Startup | undefined> {

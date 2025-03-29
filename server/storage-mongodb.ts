@@ -359,6 +359,24 @@ export class MongoDBStorage implements IStorage {
     }
   }
 
+  async updateStartup(id: number | string, updateData: Partial<InsertStartup>): Promise<StartupType | undefined> {
+    try {
+      // Update startup data
+      const startup = await Startup.findByIdAndUpdate(
+        id,
+        updateData,
+        { new: true }
+      );
+      
+      if (!startup) return undefined;
+      
+      return toStartup(startup);
+    } catch (error) {
+      console.error('Error updating startup:', error);
+      return undefined;
+    }
+  }
+
   async updateStartupFunds(id: number | string, amount: number): Promise<StartupType | undefined> {
     try {
       const startup = await Startup.findById(id);

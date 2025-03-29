@@ -141,8 +141,7 @@ export const walletConnectSchema = z.object({
 });
 
 export const upiPaymentSchema = z.object({
-  amount: z.number().positive(),
-  transactionId: z.string().min(1),
+  upiId: z.string().min(1),
 });
 
 // Types

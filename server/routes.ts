@@ -3,7 +3,7 @@ import { createServer, type Server } from "http";
 import { mongoDBStorage as storage } from "./storage-mongodb";
 import { setupAuth } from "./auth";
 import { setupUploads } from "./routes/upload";
-import { insertStartupSchema, insertUpdateSchema, insertTransactionSchema } from "@shared/schema";
+import { insertStartupSchema, insertUpdateSchema, insertTransactionSchema, walletConnectSchema, upiPaymentSchema } from "@shared/schema";
 import { z } from "zod";
 
 // Create a modified schema that properly handles the endDate field
@@ -101,6 +101,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       res.json(startup);
+    } catch (error) {
+      next(error);
+    }
+  });
+  
+  app.patch("/api/startups/:id", async (req, res, next) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ message: "Authentication required" });
+    }
+
+    try {
+      // Get the startup
+      const startupId = req.params.id;
+      const startup = await storage.getStartup(startupId);
+      
+      if (!startup) {
+        return res.status(404).json({ message: "Startup not found" });
+      }
+      
+      // Check if the user owns this startup
+      const userStartup = await storage.getStartupByUserId(req.user.id);
+      if (!userStartup || userStartup.id !== startup.id) {
+        return res.status(403).json({ message: "You don't have permission to edit this startup" });
+      }
+      
+      // Validate request body using our transforming schema
+      const validatedData = startupValidationSchema.partial().safeParse({
+        ...req.body
+      });
+      
+      if (!validatedData.success) {
+        return res.status(400).json({ message: "Invalid startup data", errors: validatedData.error.errors });
+      }
+      
+      // Update the startup
+      const updatedStartup = await storage.updateStartup(startupId, validatedData.data);
+      if (!updatedStartup) {
+        return res.status(500).json({ message: "Failed to update startup" });
+      }
+      
+      res.json(updatedStartup);
     } catch (error) {
       next(error);
     }
@@ -256,6 +297,68 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const transactions = await storage.getTransactionsByStartupId(startup.id);
       res.json(transactions);
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  // Wallet connect endpoint
+  app.post("/api/wallet-connect", async (req, res, next) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ message: "Authentication required" });
+    }
+    
+    try {
+      // Validate request body
+      const validatedData = walletConnectSchema.safeParse(req.body);
+      
+      if (!validatedData.success) {
+        return res.status(400).json({ message: "Invalid wallet data", errors: validatedData.error.errors });
+      }
+      
+      // Check if wallet is already in use
+      const existingUser = await storage.getUserByWalletAddress(validatedData.data.walletAddress);
+      if (existingUser && existingUser.id !== req.user.id) {
+        return res.status(400).json({ message: "Wallet address is already linked to another account" });
+      }
+      
+      // Update user's wallet address
+      const user = await storage.updateUserWallet(req.user.id, validatedData.data.walletAddress);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      // Remove password from response
+      const { password: _, ...userWithoutPassword } = user;
+      res.status(200).json(userWithoutPassword);
+    } catch (error) {
+      next(error);
+    }
+  });
+  
+  // UPI connect endpoint
+  app.post("/api/upi-connect", async (req, res, next) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ message: "Authentication required" });
+    }
+    
+    try {
+      // Validate request body
+      const validatedData = upiPaymentSchema.safeParse(req.body);
+      
+      if (!validatedData.success) {
+        return res.status(400).json({ message: "Invalid UPI data", errors: validatedData.error.errors });
+      }
+      
+      // Update user's UPI ID
+      const user = await storage.updateUserUpi(req.user.id, validatedData.data.upiId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      // Remove password from response
+      const { password: _, ...userWithoutPassword } = user;
+      res.status(200).json(userWithoutPassword);
     } catch (error) {
       next(error);
     }

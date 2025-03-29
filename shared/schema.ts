@@ -2,6 +2,9 @@ import { pgTable, text, serial, integer, timestamp, boolean, doublePrecision } f
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
+// For MongoDB compatibility, using string or number for ID
+const idType = z.union([z.string(), z.number()]);
+
 // User table with role distinction
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
@@ -68,38 +71,55 @@ export const insertUserSchema = createInsertSchema(users).pick({
   role: true,
 });
 
-export const insertStartupSchema = createInsertSchema(startups).pick({
-  userId: true,
-  name: true,
-  description: true,
-  pitch: true,
-  stage: true,
-  fundingGoal: true,
-});
+export const insertStartupSchema = createInsertSchema(startups)
+  .pick({
+    userId: true,
+    name: true,
+    description: true,
+    pitch: true,
+    stage: true,
+    fundingGoal: true,
+  })
+  .extend({
+    userId: idType,
+  });
 
-export const insertDocumentSchema = createInsertSchema(documents).pick({
-  startupId: true,
-  name: true,
-  type: true,
-  path: true,
-  sizeInMb: true,
-});
+export const insertDocumentSchema = createInsertSchema(documents)
+  .pick({
+    startupId: true,
+    name: true,
+    type: true,
+    path: true,
+    sizeInMb: true,
+  })
+  .extend({
+    startupId: idType,
+  });
 
-export const insertUpdateSchema = createInsertSchema(updates).pick({
-  startupId: true,
-  title: true,
-  content: true,
-  visibility: true,
-});
+export const insertUpdateSchema = createInsertSchema(updates)
+  .pick({
+    startupId: true,
+    title: true,
+    content: true,
+    visibility: true,
+  })
+  .extend({
+    startupId: idType,
+  });
 
-export const insertTransactionSchema = createInsertSchema(transactions).pick({
-  investorId: true,
-  startupId: true,
-  amount: true,
-  method: true,
-  status: true,
-  transactionReference: true,
-});
+export const insertTransactionSchema = createInsertSchema(transactions)
+  .pick({
+    investorId: true,
+    startupId: true,
+    amount: true,
+    method: true,
+    status: true,
+    transactionReference: true,
+  })
+  .extend({
+    investorId: idType,
+    startupId: idType,
+  });
 
 export const loginSchema = z.object({
   email: z.string().email(),
@@ -125,8 +145,35 @@ export type LoginData = z.infer<typeof loginSchema>;
 export type WalletConnect = z.infer<typeof walletConnectSchema>;
 export type UpiPayment = z.infer<typeof upiPaymentSchema>;
 
-export type User = typeof users.$inferSelect;
-export type Startup = typeof startups.$inferSelect;
-export type Document = typeof documents.$inferSelect;
-export type Update = typeof updates.$inferSelect;
-export type Transaction = typeof transactions.$inferSelect;
+// Base types from Drizzle
+type BaseUser = typeof users.$inferSelect;
+type BaseStartup = typeof startups.$inferSelect;
+type BaseDocument = typeof documents.$inferSelect;
+type BaseUpdate = typeof updates.$inferSelect;
+type BaseTransaction = typeof transactions.$inferSelect;
+
+// Modified types to work with both SQL and MongoDB
+export interface User extends Omit<BaseUser, 'id'> {
+  id: string | number;
+}
+
+export interface Startup extends Omit<BaseStartup, 'id' | 'userId'> {
+  id: string | number;
+  userId: string | number;
+}
+
+export interface Document extends Omit<BaseDocument, 'id' | 'startupId'> {
+  id: string | number;
+  startupId: string | number;
+}
+
+export interface Update extends Omit<BaseUpdate, 'id' | 'startupId'> {
+  id: string | number;
+  startupId: string | number;
+}
+
+export interface Transaction extends Omit<BaseTransaction, 'id' | 'investorId' | 'startupId'> {
+  id: string | number;
+  investorId: string | number;
+  startupId: string | number;
+}

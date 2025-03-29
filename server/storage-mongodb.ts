@@ -49,6 +49,10 @@ function toStartup(doc: any): StartupType | undefined {
     stage: doc.stage,
     fundingGoal: doc.fundingGoal,
     fundsRaised: doc.fundsRaised,
+    imageUrl: doc.imageUrl,
+    documentUrl: doc.documentUrl,
+    upiId: doc.upiId,
+    endDate: doc.endDate,
     createdAt: doc.createdAt
   };
 }

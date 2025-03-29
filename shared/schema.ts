@@ -23,10 +23,14 @@ export const startups = pgTable("startups", {
   userId: integer("user_id").notNull().references(() => users.id),
   name: text("name").notNull(),
   description: text("description").notNull(),
-  pitch: text("pitch").notNull(),
+  pitch: text("pitch").notNull(),  // We'll keep this as a required field in the schema but use description in the form
   stage: text("stage", { enum: ["pre-seed", "seed", "series-a", "series-b", "series-c"] }).notNull(),
   fundingGoal: doublePrecision("funding_goal").notNull(),
   fundsRaised: doublePrecision("funds_raised").default(0).notNull(),
+  imageUrl: text("image_url"),
+  documentUrl: text("document_url"),
+  upiId: text("upi_id"),
+  endDate: timestamp("end_date"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -79,6 +83,10 @@ export const insertStartupSchema = createInsertSchema(startups)
     pitch: true,
     stage: true,
     fundingGoal: true,
+    imageUrl: true,
+    documentUrl: true,
+    upiId: true,
+    endDate: true,
   })
   .extend({
     userId: idType,

@@ -86,6 +86,18 @@ const StartupSchema = new mongoose.Schema({
     type: Number,
     default: 0
   },
+  imageUrl: {
+    type: String
+  },
+  documentUrl: {
+    type: String
+  },
+  upiId: {
+    type: String
+  },
+  endDate: {
+    type: Date
+  },
   createdAt: {
     type: Date,
     default: Date.now

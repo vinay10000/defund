@@ -11,12 +11,15 @@ import WalletConnectionPage from "@/pages/wallet-connection";
 import StartupDashboard from "@/pages/startup/dashboard";
 import StartupTransactions from "@/pages/startup/transactions";
 import StartupUpdates from "@/pages/startup/updates";
+import StartupCreate from "@/pages/startup/create";
+import StartupProfile from "@/pages/startup/profile";
 
 // Investor pages
 import InvestorDashboard from "@/pages/investor/dashboard";
 import InvestorTransactions from "@/pages/investor/transactions";
 import InvestorInvestments from "@/pages/investor/investments";
 import InvestorInvest from "@/pages/investor/invest";
+import InvestorProfile from "@/pages/investor/profile";
 
 import { AuthProvider } from "@/hooks/use-auth";
 import { ProtectedRoute } from "@/lib/protected-route";
@@ -49,6 +52,16 @@ function Router() {
             component={StartupUpdates}
             roles={["startup"]}
           />
+          <ProtectedRoute 
+            path="/startup/create" 
+            component={StartupCreate}
+            roles={["startup"]}
+          />
+          <ProtectedRoute 
+            path="/startup/profile" 
+            component={StartupProfile}
+            roles={["startup"]}
+          />
 
           {/* Protected Investor Routes */}
           <ProtectedRoute 
@@ -69,6 +82,11 @@ function Router() {
           <ProtectedRoute 
             path="/investor/invest/:startupId" 
             component={InvestorInvest}
+            roles={["investor"]}
+          />
+          <ProtectedRoute 
+            path="/investor/profile" 
+            component={InvestorProfile}
             roles={["investor"]}
           />
 

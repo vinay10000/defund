@@ -37,10 +37,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/startups/:id", async (req, res, next) => {
     try {
-      const id = parseInt(req.params.id);
-      if (isNaN(id)) {
-        return res.status(400).json({ message: "Invalid startup ID" });
-      }
+      // Handle both numeric IDs and MongoDB ObjectIds
+      const id = req.params.id;
       
       const startup = await storage.getStartup(id);
       if (!startup) {
@@ -107,10 +105,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Document routes
   app.get("/api/startups/:startupId/documents", async (req, res, next) => {
     try {
-      const startupId = parseInt(req.params.startupId);
-      if (isNaN(startupId)) {
-        return res.status(400).json({ message: "Invalid startup ID" });
-      }
+      // Handle both numeric IDs and MongoDB ObjectIds
+      const startupId = req.params.startupId;
       
       const documents = await storage.getDocumentsByStartupId(startupId);
       res.json(documents);
@@ -156,10 +152,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/updates/startup/:startupId", async (req, res, next) => {
     try {
-      const startupId = parseInt(req.params.startupId);
-      if (isNaN(startupId)) {
-        return res.status(400).json({ message: "Invalid startup ID" });
-      }
+      // Handle both numeric IDs and MongoDB ObjectIds
+      const startupId = req.params.startupId;
       
       const updates = await storage.getUpdatesByStartupId(startupId);
       res.json(updates);

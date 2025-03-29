@@ -28,7 +28,8 @@ export function StartupInfo({ startup, documents, onEditClick }: StartupInfoProp
     ).join(' ');
   };
 
-  const getFileIcon = (type: string) => {
+  const getFileIcon = (type: string | null | undefined) => {
+    if (!type) return "ri-file-line";
     if (type.includes('pdf')) return "ri-file-text-line";
     if (type.includes('excel') || type.includes('sheet')) return "ri-file-chart-line";
     if (type.includes('word') || type.includes('document')) return "ri-file-list-3-line";

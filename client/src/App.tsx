@@ -6,6 +6,7 @@ import NotFound from "@/pages/not-found";
 import HomePage from "@/pages/home-page";
 import AuthPage from "@/pages/auth-page";
 import WalletConnectionPage from "@/pages/wallet-connection";
+import ProfilePage from "@/pages/profile-page";
 
 // Startup pages
 import StartupDashboard from "@/pages/startup/dashboard";
@@ -35,6 +36,13 @@ function Router() {
           <Route path="/" component={HomePage} />
           <Route path="/auth" component={AuthPage} />
           <Route path="/wallet-connection" component={WalletConnectionPage} />
+          
+          {/* Shared Protected Routes */}
+          <ProtectedRoute
+            path="/profile"
+            component={ProfilePage}
+            roles={["startup", "investor"]}
+          />
 
           {/* Protected Startup Routes */}
           <ProtectedRoute 

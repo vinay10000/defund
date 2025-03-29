@@ -52,6 +52,7 @@ function toStartup(doc: any): StartupType | undefined {
     imageUrl: doc.imageUrl,
     documentUrl: doc.documentUrl,
     upiId: doc.upiId,
+    walletAddress: doc.walletAddress,
     endDate: doc.endDate,
     createdAt: doc.createdAt
   };
@@ -163,11 +164,29 @@ export class MongoDBStorage implements IStorage {
 
   async updateUserWallet(id: number | string, walletAddress: string): Promise<UserType | undefined> {
     try {
+      // Update user wallet
       const user = await User.findByIdAndUpdate(
         id,
         { walletAddress },
         { new: true }
       );
+      
+      if (!user) return undefined;
+      
+      // If user is a startup founder, also update the startup wallet
+      if (user.role === 'startup') {
+        // Find the startup associated with this user
+        const startup = await Startup.findOne({ userId: user._id });
+        if (startup) {
+          // Update the startup wallet address
+          await Startup.findByIdAndUpdate(
+            startup._id,
+            { walletAddress },
+            { new: true }
+          );
+        }
+      }
+      
       return toUser(user);
     } catch (error) {
       console.error('Error updating user wallet:', error);
@@ -175,13 +194,90 @@ export class MongoDBStorage implements IStorage {
     }
   }
 
+  async updateUserProfile(id: number | string, profilePath: string): Promise<UserType | undefined> {
+    try {
+      // Update user profile picture
+      const user = await User.findByIdAndUpdate(
+        id,
+        { profilePicture: profilePath },
+        { new: true }
+      );
+      
+      if (!user) return undefined;
+      
+      return toUser(user);
+    } catch (error) {
+      console.error('Error updating user profile picture:', error);
+      return undefined;
+    }
+  }
+
+  async updateStartupImage(id: number | string, imagePath: string): Promise<StartupType | undefined> {
+    try {
+      // Update startup image
+      const startup = await Startup.findByIdAndUpdate(
+        id,
+        { image: imagePath },
+        { new: true }
+      );
+      
+      if (!startup) return undefined;
+      
+      return toStartup(startup);
+    } catch (error) {
+      console.error('Error updating startup image:', error);
+      return undefined;
+    }
+  }
+
+  async updateUserUpiQr(id: number | string, qrPath: string, upiId?: string | null): Promise<UserType | undefined> {
+    try {
+      // Update user UPI QR code and optionally the UPI ID
+      const updateData: any = { upiQrCode: qrPath };
+      if (upiId) {
+        updateData.upiId = upiId;
+      }
+      
+      const user = await User.findByIdAndUpdate(
+        id,
+        updateData,
+        { new: true }
+      );
+      
+      if (!user) return undefined;
+      
+      return toUser(user);
+    } catch (error) {
+      console.error('Error updating user UPI QR code:', error);
+      return undefined;
+    }
+  }
+
   async updateUserUpi(id: number | string, upiId: string): Promise<UserType | undefined> {
     try {
+      // Update user UPI
       const user = await User.findByIdAndUpdate(
         id,
         { upiId },
         { new: true }
       );
+      
+      if (!user) return undefined;
+      
+      // If user is a startup founder, also update the startup UPI
+      if (user.role === 'startup') {
+        // Find the startup associated with this user
+        const startup = await Startup.findOne({ userId: user._id });
+        if (startup) {
+          // Update the startup UPI ID
+          await Startup.findByIdAndUpdate(
+            startup._id,
+            { upiId },
+            { new: true }
+          );
+        }
+      }
+      
       return toUser(user);
     } catch (error) {
       console.error('Error updating user UPI:', error);

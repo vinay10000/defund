@@ -12,36 +12,39 @@ const MemoryStore = createMemoryStore(session);
 
 export interface IStorage {
   // User operations
-  getUser(id: number): Promise<User | undefined>;
+  getUser(id: number | string): Promise<User | undefined>;
   getUserByEmail(email: string): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
   getUserByWalletAddress(walletAddress: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
-  updateUserWallet(id: number, walletAddress: string): Promise<User | undefined>;
-  updateUserUpi(id: number, upiId: string): Promise<User | undefined>;
+  updateUserWallet(id: number | string, walletAddress: string): Promise<User | undefined>;
+  updateUserUpi(id: number | string, upiId: string): Promise<User | undefined>;
+  updateUserProfile(id: number | string, profilePath: string): Promise<User | undefined>;
+  updateUserUpiQr(id: number | string, qrPath: string, upiId?: string | null): Promise<User | undefined>;
 
   // Startup operations
-  getStartup(id: number): Promise<Startup | undefined>;
-  getStartupByUserId(userId: number): Promise<Startup | undefined>;
+  updateStartupImage(id: number | string, imagePath: string): Promise<Startup | undefined>;
+  getStartup(id: number | string): Promise<Startup | undefined>;
+  getStartupByUserId(userId: number | string): Promise<Startup | undefined>;
   getAllStartups(): Promise<Startup[]>;
   getStartupsByStage(stage: string): Promise<Startup[]>;
   createStartup(startup: InsertStartup): Promise<Startup>;
-  updateStartupFunds(id: number, amount: number): Promise<Startup | undefined>;
+  updateStartupFunds(id: number | string, amount: number): Promise<Startup | undefined>;
 
   // Document operations
-  getDocumentsByStartupId(startupId: number): Promise<Document[]>;
+  getDocumentsByStartupId(startupId: number | string): Promise<Document[]>;
   createDocument(document: InsertDocument): Promise<Document>;
 
   // Update operations
-  getUpdateById(id: number): Promise<Update | undefined>;
-  getUpdatesByStartupId(startupId: number): Promise<Update[]>;
-  getUpdatesForInvestor(investorId: number): Promise<Update[]>;
+  getUpdateById(id: number | string): Promise<Update | undefined>;
+  getUpdatesByStartupId(startupId: number | string): Promise<Update[]>;
+  getUpdatesForInvestor(investorId: number | string): Promise<Update[]>;
   createUpdate(update: InsertUpdate): Promise<Update>;
 
   // Transaction operations
-  getTransactionById(id: number): Promise<Transaction | undefined>;
-  getTransactionsByInvestorId(investorId: number): Promise<Transaction[]>;
-  getTransactionsByStartupId(startupId: number): Promise<Transaction[]>;
+  getTransactionById(id: number | string): Promise<Transaction | undefined>;
+  getTransactionsByInvestorId(investorId: number | string): Promise<Transaction[]>;
+  getTransactionsByStartupId(startupId: number | string): Promise<Transaction[]>;
   createTransaction(transaction: InsertTransaction): Promise<Transaction>;
 
   // Session store
@@ -81,8 +84,9 @@ export class MemStorage implements IStorage {
   }
 
   // User methods
-  async getUser(id: number): Promise<User | undefined> {
-    return this.users.get(id);
+  async getUser(id: number | string): Promise<User | undefined> {
+    const numericId = typeof id === 'string' ? parseInt(id) : id;
+    return this.users.get(numericId);
   }
 
   async getUserByEmail(email: string): Promise<User | undefined> {
@@ -112,31 +116,73 @@ export class MemStorage implements IStorage {
     return user;
   }
 
-  async updateUserWallet(id: number, walletAddress: string): Promise<User | undefined> {
-    const user = this.users.get(id);
+  async updateUserWallet(id: number | string, walletAddress: string): Promise<User | undefined> {
+    const numericId = typeof id === 'string' ? parseInt(id) : id;
+    const user = this.users.get(numericId);
     if (!user) return undefined;
 
     const updatedUser = { ...user, walletAddress };
-    this.users.set(id, updatedUser);
+    this.users.set(numericId, updatedUser);
     return updatedUser;
   }
 
-  async updateUserUpi(id: number, upiId: string): Promise<User | undefined> {
-    const user = this.users.get(id);
+  async updateUserUpi(id: number | string, upiId: string): Promise<User | undefined> {
+    const numericId = typeof id === 'string' ? parseInt(id) : id;
+    const user = this.users.get(numericId);
     if (!user) return undefined;
 
     const updatedUser = { ...user, upiId };
-    this.users.set(id, updatedUser);
+    this.users.set(numericId, updatedUser);
     return updatedUser;
+  }
+  
+  async updateUserProfile(id: number | string, profilePath: string): Promise<User | undefined> {
+    const numericId = typeof id === 'string' ? parseInt(id) : id;
+    const user = this.users.get(numericId);
+    if (!user) return undefined;
+
+    const updatedUser = { ...user, profilePicture: profilePath };
+    this.users.set(numericId, updatedUser);
+    return updatedUser;
+  }
+  
+  async updateUserUpiQr(id: number | string, qrPath: string, upiId?: string | null): Promise<User | undefined> {
+    const numericId = typeof id === 'string' ? parseInt(id) : id;
+    const user = this.users.get(numericId);
+    if (!user) return undefined;
+
+    const updatedUser = { 
+      ...user, 
+      upiQrCode: qrPath,
+      ...(upiId ? { upiId } : {})
+    };
+    
+    this.users.set(numericId, updatedUser);
+    return updatedUser;
+  }
+  
+  async updateStartupImage(id: number | string, imagePath: string): Promise<Startup | undefined> {
+    const numericId = typeof id === 'string' ? parseInt(id) : id;
+    const startup = this.startups.get(numericId);
+    if (!startup) return undefined;
+
+    const updatedStartup = { ...startup, image: imagePath };
+    this.startups.set(numericId, updatedStartup);
+    return updatedStartup;
   }
 
   // Startup methods
-  async getStartup(id: number): Promise<Startup | undefined> {
-    return this.startups.get(id);
+  async getStartup(id: number | string): Promise<Startup | undefined> {
+    const numericId = typeof id === 'string' ? parseInt(id) : id;
+    return this.startups.get(numericId);
   }
 
-  async getStartupByUserId(userId: number): Promise<Startup | undefined> {
-    return Array.from(this.startups.values()).find(startup => startup.userId === userId);
+  async getStartupByUserId(userId: number | string): Promise<Startup | undefined> {
+    const numericUserId = typeof userId === 'string' ? parseInt(userId) : userId;
+    return Array.from(this.startups.values()).find(startup => {
+      const startupUserId = typeof startup.userId === 'string' ? parseInt(startup.userId) : startup.userId;
+      return startupUserId === numericUserId;
+    });
   }
 
   async getAllStartups(): Promise<Startup[]> {
@@ -150,10 +196,21 @@ export class MemStorage implements IStorage {
   async createStartup(insertStartup: InsertStartup): Promise<Startup> {
     const id = this.startupIdCounter++;
     const now = new Date();
+    // Initialize with defaults, ensuring all properties are defined
     const startup: Startup = { 
-      ...insertStartup, 
       id, 
-      fundsRaised: 0, 
+      userId: insertStartup.userId,
+      name: insertStartup.name,
+      description: insertStartup.description,
+      pitch: insertStartup.pitch,
+      stage: insertStartup.stage,
+      fundingGoal: insertStartup.fundingGoal,
+      fundsRaised: 0,
+      imageUrl: insertStartup.imageUrl || null,
+      documentUrl: insertStartup.documentUrl || null,
+      upiId: null,
+      walletAddress: null,
+      endDate: insertStartup.endDate || null,
       createdAt: now
     };
     
@@ -161,8 +218,9 @@ export class MemStorage implements IStorage {
     return startup;
   }
 
-  async updateStartupFunds(id: number, amount: number): Promise<Startup | undefined> {
-    const startup = this.startups.get(id);
+  async updateStartupFunds(id: number | string, amount: number): Promise<Startup | undefined> {
+    const numericId = typeof id === 'string' ? parseInt(id) : id;
+    const startup = this.startups.get(numericId);
     if (!startup) return undefined;
 
     const updatedStartup = { 
@@ -170,22 +228,30 @@ export class MemStorage implements IStorage {
       fundsRaised: startup.fundsRaised + amount 
     };
     
-    this.startups.set(id, updatedStartup);
+    this.startups.set(numericId, updatedStartup);
     return updatedStartup;
   }
 
   // Document methods
-  async getDocumentsByStartupId(startupId: number): Promise<Document[]> {
+  async getDocumentsByStartupId(startupId: number | string): Promise<Document[]> {
+    const numericStartupId = typeof startupId === 'string' ? parseInt(startupId) : startupId;
     return Array.from(this.documents.values())
-      .filter(document => document.startupId === startupId);
+      .filter(document => {
+        const docStartupId = typeof document.startupId === 'string' ? parseInt(document.startupId) : document.startupId;
+        return docStartupId === numericStartupId;
+      });
   }
 
   async createDocument(insertDocument: InsertDocument): Promise<Document> {
     const id = this.documentIdCounter++;
     const now = new Date();
     const document: Document = { 
-      ...insertDocument, 
-      id, 
+      id,
+      startupId: insertDocument.startupId,
+      name: insertDocument.name,
+      type: insertDocument.type,
+      path: insertDocument.path,
+      sizeInMb: insertDocument.sizeInMb,
       uploadedAt: now 
     };
     
@@ -194,26 +260,44 @@ export class MemStorage implements IStorage {
   }
 
   // Update methods
-  async getUpdateById(id: number): Promise<Update | undefined> {
-    return this.updates.get(id);
+  async getUpdateById(id: number | string): Promise<Update | undefined> {
+    const numericId = typeof id === 'string' ? parseInt(id) : id;
+    return this.updates.get(numericId);
   }
 
-  async getUpdatesByStartupId(startupId: number): Promise<Update[]> {
+  async getUpdatesByStartupId(startupId: number | string): Promise<Update[]> {
+    const numericStartupId = typeof startupId === 'string' ? parseInt(startupId) : startupId;
     return Array.from(this.updates.values())
-      .filter(update => update.startupId === startupId)
+      .filter(update => {
+        const updateStartupId = typeof update.startupId === 'string' ? parseInt(update.startupId) : update.startupId;
+        return updateStartupId === numericStartupId;
+      })
       .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
   }
 
-  async getUpdatesForInvestor(investorId: number): Promise<Update[]> {
+  async getUpdatesForInvestor(investorId: number | string): Promise<Update[]> {
+    const numericInvestorId = typeof investorId === 'string' ? parseInt(investorId) : investorId;
     // Get startups that the investor has invested in
     const investorTransactions = Array.from(this.transactions.values())
-      .filter(transaction => transaction.investorId === investorId);
+      .filter(transaction => {
+        const txInvestorId = typeof transaction.investorId === 'string' ? 
+          parseInt(transaction.investorId) : transaction.investorId;
+        return txInvestorId === numericInvestorId;
+      });
     
-    const startupIds = [...new Set(investorTransactions.map(t => t.startupId))];
+    // Convert all startupIds to numeric for consistent comparison
+    const startupIds = investorTransactions.map(t => {
+      const txStartupId = typeof t.startupId === 'string' ? parseInt(t.startupId) : t.startupId;
+      return txStartupId;
+    });
     
     // Get updates from those startups
     return Array.from(this.updates.values())
-      .filter(update => startupIds.includes(update.startupId))
+      .filter(update => {
+        const updateStartupId = typeof update.startupId === 'string' ? 
+          parseInt(update.startupId) : update.startupId;
+        return startupIds.includes(updateStartupId);
+      })
       .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
   }
 
@@ -221,8 +305,11 @@ export class MemStorage implements IStorage {
     const id = this.updateIdCounter++;
     const now = new Date();
     const update: Update = { 
-      ...insertUpdate, 
-      id, 
+      id,
+      startupId: insertUpdate.startupId,
+      title: insertUpdate.title,
+      content: insertUpdate.content,
+      visibility: insertUpdate.visibility,
       createdAt: now 
     };
     
@@ -231,19 +318,30 @@ export class MemStorage implements IStorage {
   }
 
   // Transaction methods
-  async getTransactionById(id: number): Promise<Transaction | undefined> {
-    return this.transactions.get(id);
+  async getTransactionById(id: number | string): Promise<Transaction | undefined> {
+    const numericId = typeof id === 'string' ? parseInt(id) : id;
+    return this.transactions.get(numericId);
   }
 
-  async getTransactionsByInvestorId(investorId: number): Promise<Transaction[]> {
+  async getTransactionsByInvestorId(investorId: number | string): Promise<Transaction[]> {
+    const numericInvestorId = typeof investorId === 'string' ? parseInt(investorId) : investorId;
     return Array.from(this.transactions.values())
-      .filter(transaction => transaction.investorId === investorId)
+      .filter(transaction => {
+        const txInvestorId = typeof transaction.investorId === 'string' ? 
+          parseInt(transaction.investorId) : transaction.investorId;
+        return txInvestorId === numericInvestorId;
+      })
       .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
   }
 
-  async getTransactionsByStartupId(startupId: number): Promise<Transaction[]> {
+  async getTransactionsByStartupId(startupId: number | string): Promise<Transaction[]> {
+    const numericStartupId = typeof startupId === 'string' ? parseInt(startupId) : startupId;
     return Array.from(this.transactions.values())
-      .filter(transaction => transaction.startupId === startupId)
+      .filter(transaction => {
+        const txStartupId = typeof transaction.startupId === 'string' ? 
+          parseInt(transaction.startupId) : transaction.startupId;
+        return txStartupId === numericStartupId;
+      })
       .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
   }
 
@@ -251,8 +349,13 @@ export class MemStorage implements IStorage {
     const id = this.transactionIdCounter++;
     const now = new Date();
     const transaction: Transaction = { 
-      ...insertTransaction, 
-      id, 
+      id,
+      investorId: insertTransaction.investorId,
+      startupId: insertTransaction.startupId,
+      amount: insertTransaction.amount,
+      method: insertTransaction.method,
+      status: insertTransaction.status,
+      transactionReference: insertTransaction.transactionReference || null,
       createdAt: now 
     };
     

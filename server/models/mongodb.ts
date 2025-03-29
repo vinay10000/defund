@@ -95,6 +95,9 @@ const StartupSchema = new mongoose.Schema({
   upiId: {
     type: String
   },
+  walletAddress: {
+    type: String
+  },
   endDate: {
     type: Date
   },

@@ -2,6 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { mongoDBStorage as storage } from "./storage-mongodb";
 import { setupAuth } from "./auth";
+import { setupUploads } from "./routes/upload";
 import { insertStartupSchema, insertUpdateSchema, insertTransactionSchema } from "@shared/schema";
 import { z } from "zod";
 
@@ -16,6 +17,9 @@ const startupValidationSchema = insertStartupSchema.extend({
 export async function registerRoutes(app: Express): Promise<Server> {
   // Setup authentication routes
   setupAuth(app);
+  
+  // Setup file upload routes
+  setupUploads(app);
 
   // Startup routes
   app.get("/api/startups", async (req, res, next) => {

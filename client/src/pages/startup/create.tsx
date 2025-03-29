@@ -119,7 +119,8 @@ export default function StartupCreate() {
         imageUrl: imageFile ? `uploads/${imageFile.name}` : undefined,
         documentUrl: documentFile ? `uploads/${documentFile.name}` : undefined,
         upiId: data.upiId || undefined,
-        endDate: new Date(data.endDate),
+        // Ensure endDate is properly converted to a Date object if provided
+        endDate: data.endDate ? new Date(data.endDate) : undefined,
         userId: user?.id || "",
         // Required fields from schema with default values
         stage: "pre-seed",

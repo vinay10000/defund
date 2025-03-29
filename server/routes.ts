@@ -5,6 +5,18 @@ import { setupAuth } from "./auth";
 import { insertStartupSchema, insertUpdateSchema, insertTransactionSchema } from "@shared/schema";
 import { z } from "zod";
 
+// Create a modified schema that transforms string dates to Date objects
+const startupValidationSchema = insertStartupSchema.transform((data) => {
+  // If endDate is provided as a string, convert it to a Date object
+  if (data.endDate && typeof data.endDate === 'string') {
+    return {
+      ...data,
+      endDate: new Date(data.endDate)
+    };
+  }
+  return data;
+});
+
 export async function registerRoutes(app: Express): Promise<Server> {
   // Setup authentication routes
   setupAuth(app);
@@ -62,8 +74,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "You already have a startup profile" });
       }
       
-      // Validate request body
-      const validatedData = insertStartupSchema.safeParse({
+      // Validate request body using our transforming schema
+      const validatedData = startupValidationSchema.safeParse({
         ...req.body,
         userId: req.user.id
       });

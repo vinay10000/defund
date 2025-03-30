@@ -29,9 +29,17 @@ import { Header } from "@/components/layout/header";
 
 function Router() {
   return (
-    <>
+    <div className="flex flex-col min-h-screen relative overflow-hidden">
+      {/* Background particle effect */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-10 -right-10 w-[400px] h-[400px] bg-purple-900/10 rounded-full blur-3xl"></div>
+        <div className="absolute top-[20%] -left-20 w-[300px] h-[300px] bg-blue-900/10 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-0 right-[10%] w-[250px] h-[250px] bg-indigo-900/10 rounded-full blur-3xl"></div>
+      </div>
+      
       <Header />
-      <main className="min-h-[calc(100vh-76px)]">
+      
+      <main className="flex-1 px-4 sm:px-6 md:px-8 py-6 relative">
         <Switch>
           {/* Public Routes */}
           <Route path="/" component={HomePage} />
@@ -108,7 +116,11 @@ function Router() {
           <Route component={NotFound} />
         </Switch>
       </main>
-    </>
+      
+      <footer className="py-4 px-6 text-center text-sm text-gray-500">
+        <p className="opacity-70">© {new Date().getFullYear()} BlockVenture | Decentralized Investment Platform</p>
+      </footer>
+    </div>
   );
 }
 

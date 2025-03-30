@@ -3,11 +3,83 @@
 @tailwind utilities;
 
 @layer base {
+  :root {
+    --gradient-primary: linear-gradient(135deg, hsl(259, 80%, 65%) 0%, hsl(280, 70%, 50%) 100%);
+    --gradient-secondary: linear-gradient(135deg, hsl(200, 90%, 40%) 0%, hsl(259, 80%, 65%) 100%);
+    --gradient-accent: linear-gradient(135deg, hsl(320, 80%, 50%) 0%, hsl(259, 80%, 65%) 100%);
+    --glass-bg: rgba(15, 15, 20, 0.7);
+    --card-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    --hover-translate: translateY(-3px);
+    --button-hover: brightness(1.1);
+  }
+
   * {
     @apply border-border;
   }
 
   body {
-    @apply font-sans antialiased bg-background text-foreground;
+    @apply font-sans antialiased bg-black text-foreground;
+    background-image: radial-gradient(circle at bottom right, 
+      rgba(80, 50, 120, 0.05) 0%, 
+      rgba(10, 10, 15, 0.9) 70%);
+    background-attachment: fixed;
+    min-height: 100vh;
+  }
+  
+  .card-gradient {
+    background: var(--glass-bg);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    box-shadow: var(--card-shadow);
+    backdrop-filter: blur(5px);
+    border-radius: theme('borderRadius.lg');
+    transition: all 0.3s ease;
+  }
+  
+  .card-gradient:hover {
+    border-color: rgba(255, 255, 255, 0.1);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+  }
+  
+  .gradient-text {
+    @apply text-transparent bg-clip-text;
+    background-image: var(--gradient-primary);
+    letter-spacing: -0.02em;
+  }
+  
+  .gradient-border {
+    position: relative;
+    border-radius: theme('borderRadius.lg');
+    background-clip: padding-box;
+    border: 1px solid transparent;
+  }
+  
+  .gradient-border::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    margin: -1px;
+    border-radius: inherit;
+    background-image: var(--gradient-primary);
+    background-attachment: fixed;
+  }
+  
+  .gradient-btn {
+    background-image: var(--gradient-primary);
+    transition: all 0.2s ease;
+    position: relative;
+    z-index: 1;
+  }
+  
+  .gradient-btn:hover {
+    filter: var(--button-hover);
+    transform: var(--hover-translate);
+  }
+  
+  .glassmorphism {
+    background: var(--glass-bg);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: theme('borderRadius.md');
   }
 }

@@ -34,6 +34,9 @@ function toUser(doc: any): UserType | undefined {
     role: doc.role,
     walletAddress: doc.walletAddress,
     upiId: doc.upiId,
+    upiQrCode: doc.upiQrCode,
+    bio: doc.bio,
+    profilePicture: doc.profilePicture,
     createdAt: doc.createdAt
   };
 }
@@ -603,8 +606,11 @@ export class MongoDBStorage implements IStorage {
         const newTransaction = new Transaction(insertTransaction);
         const savedTransaction = await newTransaction.save({ session });
         
-        // Update startup funds
-        await this.updateStartupFunds(insertTransaction.startupId, insertTransaction.amount);
+        // Only update startup funds for completed metamask transactions
+        // For UPI transactions in pending status, funds will be updated when verified
+        if (insertTransaction.method === "metamask" && insertTransaction.status === "completed") {
+          await this.updateStartupFunds(insertTransaction.startupId, insertTransaction.amount);
+        }
         
         // Commit the transaction
         await session.commitTransaction();
@@ -625,6 +631,43 @@ export class MongoDBStorage implements IStorage {
     } catch (error) {
       console.error('Error creating transaction:', error);
       throw error;
+    }
+  }
+  
+  async updateTransactionStatus(id: number | string, status: string): Promise<TransactionType | undefined> {
+    try {
+      // Start a session to use transactions
+      const session = await mongoose.startSession();
+      session.startTransaction();
+      
+      try {
+        // Find and update the transaction
+        const updatedTransaction = await Transaction.findByIdAndUpdate(
+          id,
+          { status },
+          { new: true, session }
+        );
+        
+        if (!updatedTransaction) {
+          await session.abortTransaction();
+          return undefined;
+        }
+        
+        // Commit the transaction
+        await session.commitTransaction();
+        
+        return toTransaction(updatedTransaction);
+      } catch (error) {
+        // Abort the transaction
+        await session.abortTransaction();
+        throw error;
+      } finally {
+        // End the session
+        session.endSession();
+      }
+    } catch (error) {
+      console.error('Error updating transaction status:', error);
+      return undefined;
     }
   }
 }

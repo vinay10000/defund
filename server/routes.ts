@@ -301,6 +301,52 @@ export async function registerRoutes(app: Express): Promise<Server> {
       next(error);
     }
   });
+  
+  // Verify a transaction (approve/reject UPI payment)
+  app.patch("/api/transactions/:id/verify", async (req, res, next) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ message: "Authentication required" });
+    }
+
+    try {
+      // Check if user is a startup
+      if (req.user.role !== "startup") {
+        return res.status(403).json({ message: "Only startups can verify transactions" });
+      }
+      
+      const transactionId = req.params.id;
+      const { status } = req.body;
+      
+      // Get the transaction to verify
+      const transaction = await storage.getTransactionById(transactionId);
+      if (!transaction) {
+        return res.status(404).json({ message: "Transaction not found" });
+      }
+      
+      // Get the startup and make sure the user is the owner
+      const startup = await storage.getStartupByUserId(req.user.id);
+      if (!startup) {
+        return res.status(404).json({ message: "Startup not found" });
+      }
+      
+      // Verify the user is the startup owner
+      if (startup.id.toString() !== transaction.startupId.toString()) {
+        return res.status(403).json({ message: "You don't have permission to verify this transaction" });
+      }
+      
+      // Update the transaction status
+      const updatedTransaction = await storage.updateTransactionStatus(transactionId, status);
+      
+      // If transaction is verified (completed), update startup funds
+      if (status === "completed") {
+        await storage.updateStartupFunds(transaction.startupId, transaction.amount);
+      }
+      
+      res.json(updatedTransaction);
+    } catch (error) {
+      next(error);
+    }
+  });
 
   // Wallet connect endpoint
   app.post("/api/wallet-connect", async (req, res, next) => {
@@ -350,15 +396,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Invalid UPI data", errors: validatedData.error.errors });
       }
       
-      // Update user's UPI ID
-      const user = await storage.updateUserUpi(req.user.id, validatedData.data.upiId);
-      if (!user) {
-        return res.status(404).json({ message: "User not found" });
+      // Update user's UPI ID if provided
+      if (validatedData.data.upiId) {
+        const user = await storage.updateUserUpi(req.user.id, validatedData.data.upiId);
+        if (!user) {
+          return res.status(404).json({ message: "User not found" });
+        }
+        
+        // Remove password from response
+        const { password: _, ...userWithoutPassword } = user;
+        res.status(200).json(userWithoutPassword);
+      } else {
+        res.status(400).json({ message: "UPI ID is required" });
       }
-      
-      // Remove password from response
-      const { password: _, ...userWithoutPassword } = user;
-      res.status(200).json(userWithoutPassword);
     } catch (error) {
       next(error);
     }

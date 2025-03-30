@@ -49,6 +49,7 @@ export interface IStorage {
   getTransactionsByInvestorId(investorId: number | string): Promise<Transaction[]>;
   getTransactionsByStartupId(startupId: number | string): Promise<Transaction[]>;
   createTransaction(transaction: InsertTransaction): Promise<Transaction>;
+  updateTransactionStatus(id: number | string, status: "pending" | "completed" | "failed"): Promise<Transaction | undefined>;
 
   // Session store
   sessionStore: session.SessionStore;
@@ -112,6 +113,9 @@ export class MemStorage implements IStorage {
       id, 
       walletAddress: null, 
       upiId: null, 
+      bio: null,
+      profilePicture: null,
+      upiQrCode: null,
       createdAt: now 
     };
     
@@ -399,10 +403,23 @@ export class MemStorage implements IStorage {
     
     this.transactions.set(id, transaction);
     
-    // Update startup funds
-    await this.updateStartupFunds(insertTransaction.startupId, insertTransaction.amount);
+    // Only update startup funds for completed metamask transactions
+    // For UPI transactions in pending status, funds will be updated when verified
+    if (transaction.method === "metamask" && transaction.status === "completed") {
+      await this.updateStartupFunds(insertTransaction.startupId, insertTransaction.amount);
+    }
     
     return transaction;
+  }
+  
+  async updateTransactionStatus(id: number | string, status: "pending" | "completed" | "failed"): Promise<Transaction | undefined> {
+    const numericId = typeof id === 'string' ? parseInt(id) : id;
+    const transaction = this.transactions.get(numericId);
+    if (!transaction) return undefined;
+    
+    const updatedTransaction = { ...transaction, status };
+    this.transactions.set(numericId, updatedTransaction);
+    return updatedTransaction;
   }
   
   // Sync startup wallet addresses with user wallet addresses

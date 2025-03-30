@@ -38,6 +38,7 @@ import { Label } from "@/components/ui/label";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { connectMetaMask, sendTransaction, ethToWei } from "@/lib/web3";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { UpiPaymentModal } from "@/components/ui/upi-payment-modal";
 
 export default function InvestPage() {
   const { user } = useAuth();
@@ -48,6 +49,7 @@ export default function InvestPage() {
 
   const [amount, setAmount] = useState("");
   const [isInvestDialogOpen, setIsInvestDialogOpen] = useState(false);
+  const [isUpiModalOpen, setIsUpiModalOpen] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<"metamask" | "upi">("metamask");
 
   // Fetch the startup data
@@ -163,21 +165,12 @@ export default function InvestPage() {
         throw new Error("Please enter a valid amount");
       }
 
-      // For UPI payments, we'll just record the transaction and provide instructions
-      // In a real app, we'd use a UPI payment gateway API here
-      if (user) { // Add null check for TypeScript
-        createTransactionMutation.mutate({
-          investorId: user.id,
-          startupId: startup.id,
-          amount: numAmount,
-          method: "upi",
-          status: "pending",
-          transactionReference: "UPI-PENDING", // This would normally be a real UPI transaction ID
-        });
-      }
-
-      // Open UPI app if possible
+      // Open UPI app if possible to initiate payment
       window.open(`upi://pay?pa=${startup.upiId}&pn=${startup.name}&am=${numAmount}&cu=INR`, "_blank");
+      
+      // Open UPI payment confirmation modal
+      setIsInvestDialogOpen(false);
+      setIsUpiModalOpen(true);
 
     } catch (error: any) {
       toast({
@@ -551,6 +544,17 @@ export default function InvestPage() {
           </Tabs>
         </div>
       </div>
+      
+      {/* UPI Payment Confirmation Modal */}
+      {user && startup && (
+        <UpiPaymentModal
+          isOpen={isUpiModalOpen}
+          onClose={() => setIsUpiModalOpen(false)}
+          startup={startup}
+          amount={parseFloat(amount) || 0}
+          investorId={user.id}
+        />
+      )}
     </div>
   );
 }

@@ -14,6 +14,7 @@ export const users = pgTable("users", {
   role: text("role", { enum: ["startup", "investor", "admin"] }).notNull(),
   walletAddress: text("wallet_address"),
   upiId: text("upi_id"),
+  upiQrCode: text("upi_qr_code"),
   bio: text("bio"),
   profilePicture: text("profile_picture"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
@@ -143,7 +144,10 @@ export const walletConnectSchema = z.object({
 });
 
 export const upiPaymentSchema = z.object({
-  upiId: z.string().min(1),
+  amount: z.number().positive(),
+  fullName: z.string().min(1, "Full name is required"),
+  transactionId: z.string().min(6, "Transaction ID must be at least 6 characters"),
+  upiId: z.string().optional(),
 });
 
 // Types

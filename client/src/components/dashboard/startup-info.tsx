@@ -2,8 +2,10 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Startup, Document } from "@shared/schema";
 import { formatCurrency, truncateAddress, getStageColor } from "@/lib/utils";
-import { Edit, Copy, Download } from "lucide-react";
+import { Edit, Copy, Download, Wallet, ExternalLink } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/use-auth";
+import { Link } from "wouter";
 
 type StartupInfoProps = {
   startup: Startup;
@@ -13,6 +15,7 @@ type StartupInfoProps = {
 
 export function StartupInfo({ startup, documents, onEditClick }: StartupInfoProps) {
   const { toast } = useToast();
+  const { user } = useAuth();
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
@@ -60,13 +63,16 @@ export function StartupInfo({ startup, documents, onEditClick }: StartupInfoProp
     return `${Math.floor(diffInDays / 365)} years ago`;
   };
 
+  // Prioritize user's wallet address over startup's if viewing own startup
+  const displayWalletAddress = user?.walletAddress || startup.walletAddress;
+
   return (
-    <Card className="border border-neutral-200">
+    <Card className="border border-gray-800/40 bg-gray-900/40 backdrop-blur-sm">
       <CardContent className="pt-6">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-lg font-bold text-neutral-800">Startup Information</h2>
+          <h2 className="text-lg font-bold bg-gradient-to-r from-amber-300 to-amber-500 text-transparent bg-clip-text">Startup Information</h2>
           {onEditClick && (
-            <Button variant="ghost" className="text-primary-500 hover:text-primary-700" onClick={onEditClick}>
+            <Button variant="ghost" className="text-primary hover:text-primary/80" onClick={onEditClick}>
               <Edit className="h-4 w-4 mr-1" />
               <span className="text-sm font-medium">Edit Details</span>
             </Button>
@@ -75,59 +81,70 @@ export function StartupInfo({ startup, documents, onEditClick }: StartupInfoProp
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <h3 className="font-bold text-neutral-800 mb-1">{startup.name}</h3>
-            <p className="text-neutral-600 text-sm mb-4">{startup.description}</p>
+            <h3 className="font-bold text-white mb-1">{startup.name}</h3>
+            <p className="text-gray-400 text-sm mb-4">{startup.description}</p>
 
             <div className="mb-4">
-              <div className="text-xs text-neutral-500 mb-1">Investment Stage</div>
+              <div className="text-xs text-gray-500 mb-1">Investment Stage</div>
               <div className={`inline-block text-xs font-medium px-2 py-1 rounded ${getStageColor(startup.stage)}`}>
                 {formatStage(startup.stage)}
               </div>
             </div>
 
-            <div className="text-xs text-neutral-500 mb-1">Elevator Pitch</div>
-            <p className="text-sm text-neutral-700 mb-4">{startup.pitch}</p>
+            <div className="text-xs text-gray-500 mb-1">Elevator Pitch</div>
+            <p className="text-sm text-gray-300 mb-4">{startup.pitch}</p>
 
-            <div className="text-xs text-neutral-500 mb-1">Wallet Address</div>
-            <div className="flex items-center bg-neutral-100 px-3 py-2 rounded-md mb-4">
-              <span className="text-sm font-mono text-neutral-700 overflow-hidden wallet-address">
-                {startup.walletAddress ? truncateAddress(startup.walletAddress) : "Not connected"}
+            <div className="text-xs text-gray-500 mb-1">Wallet Address</div>
+            <div className="flex items-center bg-gray-800/60 px-3 py-2 rounded-md mb-4">
+              <span className="text-sm font-mono text-gray-300 overflow-hidden wallet-address">
+                {displayWalletAddress ? truncateAddress(displayWalletAddress) : "Not connected"}
               </span>
-              {startup.walletAddress && (
+              {displayWalletAddress ? (
                 <Button 
                   variant="ghost" 
                   size="sm" 
-                  className="ml-2 text-neutral-500 hover:text-neutral-700 p-0 h-auto"
-                  onClick={() => copyToClipboard(startup.walletAddress || "")}
+                  className="ml-2 text-gray-400 hover:text-gray-200 p-0 h-auto"
+                  onClick={() => copyToClipboard(displayWalletAddress)}
                 >
                   <Copy className="h-4 w-4" />
                 </Button>
+              ) : (
+                <Link href="/wallet-connection">
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="ml-2 text-primary hover:text-primary/80 p-0 h-auto"
+                  >
+                    <Wallet className="h-4 w-4 mr-1" />
+                    <span className="text-xs">Connect</span>
+                  </Button>
+                </Link>
               )}
             </div>
 
-            <div className="text-xs text-neutral-500 mb-1">UPI ID</div>
-            <p className="text-sm text-neutral-700">{startup.upiId || "Not provided"}</p>
+            <div className="text-xs text-gray-500 mb-1">UPI ID</div>
+            <p className="text-sm text-gray-300">{startup.upiId || "Not provided"}</p>
           </div>
 
           <div>
-            <div className="text-xs text-neutral-500 mb-1">Uploaded Documents</div>
+            <div className="text-xs text-gray-500 mb-1">Uploaded Documents</div>
             <div className="space-y-3">
               {documents.length === 0 ? (
-                <p className="text-sm text-neutral-500">No documents uploaded.</p>
+                <p className="text-sm text-gray-500">No documents uploaded.</p>
               ) : (
                 documents.map((document) => (
-                  <div key={document.id} className="flex items-center bg-neutral-50 p-3 rounded-md border border-neutral-200">
-                    <i className={`${getFileIcon(document.type)} text-neutral-500 mr-2`}></i>
+                  <div key={document.id} className="flex items-center bg-gray-800/60 p-3 rounded-md border border-gray-700/50">
+                    <i className={`${getFileIcon(document.type)} text-gray-400 mr-2`}></i>
                     <div className="flex-1 min-w-0">
-                      <div className="text-sm font-medium text-neutral-800 truncate">{document.name}</div>
-                      <div className="text-xs text-neutral-500">
+                      <div className="text-sm font-medium text-gray-200 truncate">{document.name}</div>
+                      <div className="text-xs text-gray-500">
                         {getFileSize(document.sizeInMb)} • Uploaded {formatDateAgo(document.uploadedAt)}
                       </div>
                     </div>
                     <Button 
                       variant="ghost" 
                       size="sm" 
-                      className="text-primary-500 hover:text-primary-700 p-1 h-auto"
+                      className="text-primary hover:text-primary/80 p-1 h-auto"
                     >
                       <Download className="h-4 w-4" />
                     </Button>
@@ -136,7 +153,7 @@ export function StartupInfo({ startup, documents, onEditClick }: StartupInfoProp
               )}
             </div>
             <div className="mt-4">
-              <Button variant="ghost" className="text-primary-500 hover:text-primary-700 p-0">
+              <Button variant="ghost" className="text-primary hover:text-primary/80 group flex items-center">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   width="24"
@@ -147,7 +164,7 @@ export function StartupInfo({ startup, documents, onEditClick }: StartupInfoProp
                   strokeWidth="2"
                   strokeLinecap="round"
                   strokeLinejoin="round"
-                  className="h-4 w-4 mr-1"
+                  className="h-4 w-4 mr-2 group-hover:translate-y-[-2px] transition-transform"
                 >
                   <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
                   <polyline points="17 8 12 3 7 8" />

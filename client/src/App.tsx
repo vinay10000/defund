@@ -7,6 +7,8 @@ import HomePage from "@/pages/home-page";
 import AuthPage from "@/pages/auth-page";
 import WalletConnectionPage from "@/pages/wallet-connection";
 import ProfilePage from "@/pages/profile-page";
+import AccountSettingsPage from "@/pages/account-settings";
+import AdminPage from "@/pages/admin-page";
 
 // Startup pages
 import StartupDashboard from "@/pages/startup/dashboard";
@@ -27,7 +29,7 @@ import { AuthProvider } from "@/hooks/use-auth";
 import { ProtectedRoute } from "@/lib/protected-route";
 import { Header } from "@/components/layout/header";
 
-function Router() {
+function Router(): JSX.Element {
   return (
     <div className="flex flex-col min-h-screen relative overflow-hidden">
       {/* Background particle effect */}
@@ -51,6 +53,16 @@ function Router() {
             path="/profile"
             component={ProfilePage}
             roles={["startup", "investor"]}
+          />
+          <ProtectedRoute
+            path="/account-settings"
+            component={AccountSettingsPage}
+            roles={["startup", "investor"]}
+          />
+          <ProtectedRoute
+            path="/admin"
+            component={AdminPage}
+            roles={["startup", "investor", "admin"]}
           />
 
           {/* Protected Startup Routes */}

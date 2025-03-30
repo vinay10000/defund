@@ -366,6 +366,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Special admin routes (ensure these are properly secured in production)
   app.post('/api/admin/sync-wallets', async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ message: "Authentication required" });
+    }
+
     try {
       await storage.syncStartupsWalletAddresses();
       res.status(200).json({ success: true, message: 'Wallet addresses synchronized successfully' });
@@ -375,7 +379,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  app.post('/api/admin/clear-startups', async (req, res) => {
+  app.delete('/api/admin/reset-startups', async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ message: "Authentication required" });
+    }
+    
     try {
       await storage.deleteAllStartups();
       res.status(200).json({ success: true, message: 'All startups deleted successfully' });

@@ -11,9 +11,11 @@ export const users = pgTable("users", {
   username: text("username").notNull().unique(),
   email: text("email").notNull().unique(),
   password: text("password").notNull(),
-  role: text("role", { enum: ["startup", "investor"] }).notNull(),
+  role: text("role", { enum: ["startup", "investor", "admin"] }).notNull(),
   walletAddress: text("wallet_address"),
   upiId: text("upi_id"),
+  bio: text("bio"),
+  profilePicture: text("profile_picture"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 

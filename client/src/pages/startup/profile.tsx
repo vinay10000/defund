@@ -72,9 +72,17 @@ export default function StartupProfile() {
             <CardContent className="py-6">
               <div className="flex flex-col items-center text-center space-y-4">
                 <Avatar className="h-24 w-24">
-                  <AvatarFallback className="text-xl font-bold bg-primary/20 text-primary">
-                    {getInitials(startup.name)}
-                  </AvatarFallback>
+                  {startup.imageUrl ? (
+                    <img 
+                      src={startup.imageUrl}
+                      alt={`${startup.name} logo`} 
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    <AvatarFallback className="text-xl font-bold bg-primary/20 text-primary">
+                      {getInitials(startup.name)}
+                    </AvatarFallback>
+                  )}
                 </Avatar>
                 <div className="space-y-2">
                   <h3 className="text-xl font-bold">{startup.name}</h3>

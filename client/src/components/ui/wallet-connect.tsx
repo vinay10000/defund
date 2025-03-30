@@ -92,7 +92,7 @@ export function WalletConnect() {
         </div>
 
         {user?.walletAddress ? (
-          <div className="glassmorphism p-4 rounded-lg mb-6 border border-green-500/20">
+          <div className="glassmorphism p-4 rounded-lg mb-6 border border-green-500/30 bg-green-900/10">
             <div className="flex items-center">
               <div className="bg-gradient-to-br from-green-400 to-green-500 w-10 h-10 flex items-center justify-center rounded-full mr-3 text-white shadow-md">
                 <svg
@@ -128,7 +128,7 @@ export function WalletConnect() {
           </div>
         ) : (
           <>
-            <div className="glassmorphism p-4 rounded-lg mb-6 border border-blue-500/20">
+            <div className="glassmorphism p-4 rounded-lg mb-6 border border-blue-500/30 bg-blue-900/10">
               <div className="flex items-start">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -153,7 +153,7 @@ export function WalletConnect() {
             </div>
 
             {currentAccount && (
-              <div className="glassmorphism p-4 rounded-lg mb-6 border border-amber-500/20">
+              <div className="glassmorphism p-4 rounded-lg mb-6 border border-amber-500/30 bg-amber-900/10">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center">
                     <img

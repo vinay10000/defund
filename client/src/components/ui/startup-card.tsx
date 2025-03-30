@@ -1,7 +1,8 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Startup } from "@shared/schema";
-import { calculatePercentage, formatCurrency, getStageColor } from "@/lib/utils";
+import { calculatePercentage, formatCurrency, getStageColor, getInitials } from "@/lib/utils";
 import { Link } from "wouter";
 import { Badge } from "@/components/ui/badge";
 
@@ -24,8 +25,8 @@ export function StartupCard({ startup, showInvestButton = true }: StartupCardPro
     "https://images.unsplash.com/photo-1552664730-d307ca884978?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80"
   ];
   
-  // Choose image based on startup id or name
-  const imageIndex = (startup.id || startup.name.length) % images.length;
+  // Choose image based on startup name length as a simple hash function
+  const imageIndex = startup.name.length % images.length;
   const imageUrl = images[imageIndex];
   
   // Format stage name for display
@@ -49,7 +50,23 @@ export function StartupCard({ startup, showInvestButton = true }: StartupCardPro
       </div>
       
       <CardContent className="p-5">
-        <h3 className="font-bold text-lg text-neutral-800 mb-2">{startup.name}</h3>
+        <div className="flex items-center mb-3">
+          <Avatar className="h-10 w-10 mr-3">
+            {startup.imageUrl && (
+              <img 
+                src={startup.imageUrl}
+                alt={`${startup.name} logo`} 
+                className="h-full w-full object-cover"
+              />
+            )}
+            <AvatarFallback className="text-sm font-bold bg-primary/20 text-primary">
+              {getInitials(startup.name)}
+            </AvatarFallback>
+          </Avatar>
+          <div>
+            <h3 className="font-bold text-lg text-neutral-800">{startup.name}</h3>
+          </div>
+        </div>
         <p className="text-neutral-600 text-sm mb-4 line-clamp-2">{startup.description}</p>
         
         <div className="flex items-center justify-between mb-3">

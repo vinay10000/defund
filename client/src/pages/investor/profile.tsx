@@ -64,9 +64,17 @@ export default function InvestorProfile() {
             <CardContent className="py-6">
               <div className="flex flex-col items-center text-center space-y-4">
                 <Avatar className="h-24 w-24">
-                  <AvatarFallback className="text-xl font-bold bg-primary/20 text-primary">
-                    {getInitials(user?.username)}
-                  </AvatarFallback>
+                  {user?.profilePicture ? (
+                    <img 
+                      src={user.profilePicture}
+                      alt={`${user.username}'s profile`} 
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    <AvatarFallback className="text-xl font-bold bg-primary/20 text-primary">
+                      {getInitials(user?.username)}
+                    </AvatarFallback>
+                  )}
                 </Avatar>
                 <div className="space-y-2">
                   <h3 className="text-xl font-bold">{user?.username}</h3>
@@ -189,9 +197,17 @@ export default function InvestorProfile() {
                     <div key={startup.id} className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
                         <Avatar className="h-8 w-8">
-                          <AvatarFallback className="text-xs font-bold bg-primary/10 text-primary">
-                            {getInitials(startup.name)}
-                          </AvatarFallback>
+                          {startup.imageUrl ? (
+                            <img 
+                              src={startup.imageUrl}
+                              alt={`${startup.name} logo`} 
+                              className="h-full w-full object-cover"
+                            />
+                          ) : (
+                            <AvatarFallback className="text-xs font-bold bg-primary/10 text-primary">
+                              {getInitials(startup.name)}
+                            </AvatarFallback>
+                          )}
                         </Avatar>
                         <div>
                           <p className="text-sm font-medium">{startup.name}</p>

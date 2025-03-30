@@ -212,8 +212,8 @@ export default function AccountSettingsPage() {
                       <AvatarImage src={URL.createObjectURL(selectedImage)} alt="Preview" />
                     ) : (
                       <>
-                        {(user as any).profilePicture ? (
-                          <AvatarImage src={(user as any).profilePicture} alt={user.username} />
+                        {user.profilePicture ? (
+                          <AvatarImage src={user.profilePicture} alt={user.username} />
                         ) : (
                           <AvatarFallback className="bg-gray-800 text-primary text-xl">
                             {getInitials(user.username)}

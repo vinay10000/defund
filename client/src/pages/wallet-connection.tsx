@@ -34,24 +34,42 @@ export default function WalletConnectionPage() {
       <div className="max-w-xl mx-auto relative z-10">
         <WalletConnect />
         
-        <div className="relative flex items-center py-6 mt-8">
-          <div className="flex-grow border-t border-gray-800/60"></div>
-          <span className="flex-shrink mx-4 text-gray-400 text-sm">or</span>
-          <div className="flex-grow border-t border-gray-800/60"></div>
-        </div>
+        {!user.walletAddress && (
+          <>
+            <div className="relative flex items-center py-6 mt-8">
+              <div className="flex-grow border-t border-gray-800/60"></div>
+              <span className="flex-shrink mx-4 text-gray-400 text-sm">or</span>
+              <div className="flex-grow border-t border-gray-800/60"></div>
+            </div>
+            
+            <div className="text-center mb-6">
+              <p className="text-gray-400 mb-4">Skip for now and connect later from your profile</p>
+              <Link href={getRedirectPath()}>
+                <Button 
+                  variant="ghost" 
+                  className="text-primary hover:text-primary/80 group flex items-center"
+                >
+                  Skip & Continue
+                  <ArrowRight className="ml-2 h-4 w-4 transform transition-transform group-hover:translate-x-1" />
+                </Button>
+              </Link>
+            </div>
+          </>
+        )}
         
-        <div className="text-center mb-6">
-          <p className="text-gray-400 mb-4">Skip for now and connect later from your profile</p>
-          <Link href={getRedirectPath()}>
-            <Button 
-              variant="ghost" 
-              className="text-primary hover:text-primary/80 group flex items-center"
-            >
-              Skip & Continue
-              <ArrowRight className="ml-2 h-4 w-4 transform transition-transform group-hover:translate-x-1" />
-            </Button>
-          </Link>
-        </div>
+        {user.walletAddress && (
+          <div className="text-center mt-8 mb-6">
+            <Link href={getRedirectPath()}>
+              <Button 
+                variant="default" 
+                className="group flex items-center"
+              >
+                Continue to Dashboard
+                <ArrowRight className="ml-2 h-4 w-4 transform transition-transform group-hover:translate-x-1" />
+              </Button>
+            </Link>
+          </div>
+        )}
       </div>
     </div>
   );

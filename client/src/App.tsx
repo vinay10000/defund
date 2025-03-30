@@ -57,7 +57,12 @@ function Router(): JSX.Element {
           <ProtectedRoute
             path="/account-settings"
             component={AccountSettingsPage}
-            roles={["startup", "investor"]}
+            roles={["startup", "investor", "admin"]}
+          />
+          <ProtectedRoute
+            path="/account/settings"
+            component={AccountSettingsPage}
+            roles={["startup", "investor", "admin"]}
           />
           <ProtectedRoute
             path="/admin"

@@ -108,9 +108,17 @@ export default function ProfilePage() {
               <CardContent className="p-6">
                 <div className="flex flex-col items-center text-center">
                   <Avatar className="h-24 w-24 mb-4">
-                    <AvatarFallback className="text-xl font-bold bg-primary/20 text-primary">
-                      {getInitials(user.username)}
-                    </AvatarFallback>
+                    {user.profilePicture ? (
+                      <img 
+                        src={user.profilePicture}
+                        alt={`${user.username}'s profile`} 
+                        className="h-full w-full object-cover"
+                      />
+                    ) : (
+                      <AvatarFallback className="text-xl font-bold bg-primary/20 text-primary">
+                        {getInitials(user.username)}
+                      </AvatarFallback>
+                    )}
                   </Avatar>
                   <h2 className="text-xl font-bold">{user.username}</h2>
                   <p className="text-sm text-muted-foreground capitalize">{user.role}</p>

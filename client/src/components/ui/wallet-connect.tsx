@@ -2,19 +2,34 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useAuth } from "@/hooks/use-auth";
-import { connectMetaMask, isMetaMaskInstalled } from "@/lib/web3";
+import { connectMetaMask, isMetaMaskInstalled, getCurrentAccount } from "@/lib/web3";
 import { truncateAddress } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2 } from "lucide-react";
+import { Loader2, ExternalLink, ArrowRight } from "lucide-react";
 
 export function WalletConnect() {
   const { user, connectWalletMutation } = useAuth();
   const { toast } = useToast();
   const [isConnecting, setIsConnecting] = useState(false);
   const [metaMaskInstalled, setMetaMaskInstalled] = useState(false);
+  const [currentAccount, setCurrentAccount] = useState<string | null>(null);
 
   useEffect(() => {
-    setMetaMaskInstalled(isMetaMaskInstalled());
+    const checkMetaMask = async () => {
+      const installed = isMetaMaskInstalled();
+      setMetaMaskInstalled(installed);
+      
+      if (installed) {
+        try {
+          const account = await getCurrentAccount();
+          setCurrentAccount(account);
+        } catch (error) {
+          console.error("Failed to get current account:", error);
+        }
+      }
+    };
+    
+    checkMetaMask();
   }, []);
 
   const handleConnectWallet = async () => {
@@ -30,6 +45,7 @@ export function WalletConnect() {
     setIsConnecting(true);
     try {
       const address = await connectMetaMask();
+      setCurrentAccount(address); // Update local state
       connectWalletMutation.mutate({ walletAddress: address });
     } catch (error: any) {
       toast({
@@ -43,10 +59,10 @@ export function WalletConnect() {
   };
 
   return (
-    <Card className="w-full">
+    <Card className="w-full card-gradient border-0">
       <CardContent className="pt-6">
         <div className="flex flex-col items-center mb-6">
-          <div className="bg-amber-500 text-white p-3 rounded-full mb-3">
+          <div className="bg-gradient-to-br from-amber-500 to-amber-600 text-white p-3 rounded-full mb-4 shadow-lg">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               width="24"
@@ -67,8 +83,8 @@ export function WalletConnect() {
               <path d="M22 22v-7h-7" />
             </svg>
           </div>
-          <h2 className="text-xl font-bold text-neutral-800">Connect Your Wallet</h2>
-          <p className="text-sm text-neutral-500 text-center mt-1">
+          <h2 className="text-xl font-bold gradient-text">Connect Your Wallet</h2>
+          <p className="text-sm text-gray-400 text-center mt-2">
             {user?.walletAddress
               ? "Your wallet is connected"
               : "Connect your wallet to securely invest in startups"}
@@ -76,9 +92,9 @@ export function WalletConnect() {
         </div>
 
         {user?.walletAddress ? (
-          <div className="bg-green-50 p-4 rounded-md mb-6">
+          <div className="glassmorphism p-4 rounded-lg mb-6 border border-green-500/20">
             <div className="flex items-center">
-              <div className="bg-green-100 w-10 h-10 flex items-center justify-center rounded-full mr-3 text-green-600">
+              <div className="bg-gradient-to-br from-green-400 to-green-500 w-10 h-10 flex items-center justify-center rounded-full mr-3 text-white shadow-md">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   width="24"
@@ -95,16 +111,24 @@ export function WalletConnect() {
                 </svg>
               </div>
               <div>
-                <div className="text-sm font-medium text-neutral-800">MetaMask Connected</div>
-                <div className="text-xs text-neutral-500 font-mono">
+                <div className="text-sm font-medium text-gray-200">MetaMask Connected</div>
+                <div className="text-xs text-gray-400 font-mono flex items-center">
                   {truncateAddress(user.walletAddress, 6)}
+                  <a 
+                    href={`https://etherscan.io/address/${user.walletAddress}`} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="ml-2 text-primary hover:text-primary/80"
+                  >
+                    <ExternalLink className="h-3 w-3" />
+                  </a>
                 </div>
               </div>
             </div>
           </div>
         ) : (
           <>
-            <div className="bg-blue-50 p-4 rounded-md mb-6">
+            <div className="glassmorphism p-4 rounded-lg mb-6 border border-blue-500/20">
               <div className="flex items-start">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -116,25 +140,44 @@ export function WalletConnect() {
                   strokeWidth="2"
                   strokeLinecap="round"
                   strokeLinejoin="round"
-                  className="h-5 w-5 text-blue-500 mt-0.5 mr-2"
+                  className="h-5 w-5 text-blue-400 mt-0.5 mr-2 flex-shrink-0"
                 >
                   <circle cx="12" cy="12" r="10" />
                   <path d="M12 16v-4" />
                   <path d="M12 8h.01" />
                 </svg>
-                <p className="text-sm text-neutral-600">
+                <p className="text-sm text-gray-300">
                   Your wallet will be permanently linked to your account. The same wallet cannot be used for multiple accounts.
                 </p>
               </div>
             </div>
 
+            {currentAccount && (
+              <div className="glassmorphism p-4 rounded-lg mb-6 border border-amber-500/20">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center">
+                    <img
+                      src="https://metamask.io/images/metamask-fox.svg"
+                      alt="MetaMask"
+                      className="h-5 w-5 mr-2"
+                    />
+                    <div>
+                      <div className="text-sm font-medium text-gray-200">MetaMask Detected</div>
+                      <div className="text-xs text-gray-400 font-mono">{truncateAddress(currentAccount, 6)}</div>
+                    </div>
+                  </div>
+                  <ArrowRight className="h-4 w-4 text-amber-500" />
+                </div>
+              </div>
+            )}
+
             <Button
-              className="w-full flex items-center justify-center bg-amber-500 hover:bg-amber-600 text-white"
+              className="w-full flex items-center justify-center gradient-btn py-6"
               onClick={handleConnectWallet}
               disabled={isConnecting || connectWalletMutation.isPending || !metaMaskInstalled}
             >
               {isConnecting || connectWalletMutation.isPending ? (
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                <Loader2 className="h-5 w-5 mr-2 animate-spin" />
               ) : (
                 <img
                   src="https://metamask.io/images/metamask-fox.svg"
@@ -147,7 +190,9 @@ export function WalletConnect() {
                   ? "MetaMask Not Installed"
                   : isConnecting || connectWalletMutation.isPending
                   ? "Connecting..."
-                  : "Connect with MetaMask"}
+                  : currentAccount 
+                    ? `Connect with Account ${truncateAddress(currentAccount, 4)}`
+                    : "Connect with MetaMask"}
               </span>
             </Button>
           </>

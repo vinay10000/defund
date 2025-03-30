@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
 import { useEffect } from "react";
+import { ArrowRight } from "lucide-react";
 
 export default function WalletConnectionPage() {
   const { user } = useAuth();
@@ -25,20 +26,29 @@ export default function WalletConnectionPage() {
 
   return (
     <div className="container mx-auto px-4 py-12">
-      <div className="max-w-xl mx-auto">
+      <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
+        <div className="absolute top-1/3 left-1/3 w-[300px] h-[300px] bg-amber-900/10 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-1/4 right-1/3 w-[250px] h-[250px] bg-purple-900/10 rounded-full blur-3xl"></div>
+      </div>
+      
+      <div className="max-w-xl mx-auto relative z-10">
         <WalletConnect />
         
-        <div className="relative flex items-center py-5 mt-8">
-          <div className="flex-grow border-t border-neutral-300"></div>
-          <span className="flex-shrink mx-4 text-neutral-500 text-sm">or</span>
-          <div className="flex-grow border-t border-neutral-300"></div>
+        <div className="relative flex items-center py-6 mt-8">
+          <div className="flex-grow border-t border-gray-800/60"></div>
+          <span className="flex-shrink mx-4 text-gray-400 text-sm">or</span>
+          <div className="flex-grow border-t border-gray-800/60"></div>
         </div>
         
         <div className="text-center mb-6">
-          <p className="text-neutral-600 mb-3">Skip for now and connect later from your profile</p>
+          <p className="text-gray-400 mb-4">Skip for now and connect later from your profile</p>
           <Link href={getRedirectPath()}>
-            <Button variant="link" className="text-primary-500 hover:text-primary-700">
+            <Button 
+              variant="ghost" 
+              className="text-primary hover:text-primary/80 group flex items-center"
+            >
               Skip & Continue
+              <ArrowRight className="ml-2 h-4 w-4 transform transition-transform group-hover:translate-x-1" />
             </Button>
           </Link>
         </div>

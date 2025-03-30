@@ -19,6 +19,10 @@ export default function StartupDashboard() {
   const { data: startup, isLoading: isLoadingStartup } = useQuery<Startup | undefined>({
     queryKey: ["/api/startups/user/me"],
     enabled: !!user,
+    onError: () => {
+      // If there's an error fetching the startup, redirect to create page
+      navigate("/startup/create");
+    }
   });
 
   // Fetch transactions for this startup

@@ -204,6 +204,18 @@ export default function AuthPage() {
                             Sign up
                           </button>
                         </p>
+                        <div className="mt-4">
+                          <button
+                            type="button"
+                            className="text-xs text-gray-500 hover:text-primary-500"
+                            onClick={() => {
+                              loginForm.setValue("email", "admin@deventure.io");
+                              loginForm.setValue("password", "admin123");
+                            }}
+                          >
+                            Continue as Admin
+                          </button>
+                        </div>
                       </div>
                     </form>
                   </Form>

@@ -20,7 +20,7 @@ export function FileUpload({
   onFileUpload,
   className,
   acceptedFileTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/svg+xml'],
-  maxSize = 5, // 5MB default
+  maxSize = 5, // 5MB default for images, but 1MB for documents
   label = 'Drag & drop a file here, or click to select',
   icon,
   previewUrl,

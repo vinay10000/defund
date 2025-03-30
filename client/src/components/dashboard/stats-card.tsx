@@ -14,9 +14,10 @@ type StatCardProps = {
     positive: boolean;
   };
   children?: React.ReactNode;
+  startup?: Startup;
 };
 
-function StatCard({ title, value, change, children }: StatCardProps) {
+function StatCard({ title, value, change, children, startup }: StatCardProps) {
   return (
     <Card className="border border-neutral-200">
       <CardContent className="pt-6">
@@ -30,8 +31,8 @@ function StatCard({ title, value, change, children }: StatCardProps) {
         </div>
         <div className="flex items-baseline">
           <span className="text-2xl font-bold text-neutral-800">{value}</span>
-          {title === "Total Raised" && (
-            <span className="ml-2 text-sm text-neutral-500">of {formatCurrency(250000)} goal</span>
+          {title === "Total Raised" && startup && (
+            <span className="ml-2 text-sm text-neutral-500">of {formatCurrency(startup.fundingGoal)} goal</span>
           )}
         </div>
         {children}
@@ -48,6 +49,7 @@ export function TotalRaisedCard({ startup }: { startup: Startup }) {
       title="Total Raised" 
       value={formatCurrency(startup.fundsRaised)} 
       change={{ value: "+12% this month", positive: true }}
+      startup={startup}
     >
       <div className="mt-4 w-full bg-neutral-200 rounded-full h-2">
         <div 

@@ -419,6 +419,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     if (!req.isAuthenticated()) {
       return res.status(401).json({ message: "Authentication required" });
     }
+    
+    // Check if user is an admin
+    if (req.user.role !== 'admin') {
+      return res.status(403).json({ message: "Admin access required" });
+    }
 
     try {
       await storage.syncStartupsWalletAddresses();
@@ -432,6 +437,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.delete('/api/admin/reset-startups', async (req, res) => {
     if (!req.isAuthenticated()) {
       return res.status(401).json({ message: "Authentication required" });
+    }
+    
+    // Check if user is an admin
+    if (req.user.role !== 'admin') {
+      return res.status(403).json({ message: "Admin access required" });
     }
     
     try {
